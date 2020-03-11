@@ -2,6 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>Cam Sinclair</Authors>
+    <Company />
+    <Description>A .NET serialisation library where the same function can both serialise and deserialise (i.e. Serdes = SERialise-DESerialise)</Description>
+    <Copyright>2020 Cam Sinclair</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/CSinkers/SerdesNet</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/CSinkers/SerdesNet</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageTags>serialisation serialization</PackageTags>
   </PropertyGroup>
 
 </Project>
