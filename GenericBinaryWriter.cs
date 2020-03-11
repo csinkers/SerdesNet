@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 
 namespace SerdesNet
 {
-    public class GenericBinaryWriter2 : ISerializer
+    public class GenericBinaryWriter : ISerializer
     {
         readonly Action<string> _assertionFailed;
         readonly Func<string, byte[]> _stringToBytes;
@@ -14,7 +14,7 @@ namespace SerdesNet
         readonly BinaryWriter _bw;
         long _offset;
 
-        public GenericBinaryWriter2(BinaryWriter bw, Func<string, byte[]> stringToBytes, Action<string> assertionFailed = null)
+        public GenericBinaryWriter(BinaryWriter bw, Func<string, byte[]> stringToBytes, Action<string> assertionFailed = null)
         {
             _bw = bw ?? throw new ArgumentNullException(nameof(bw));
             _stringToBytes = stringToBytes ?? throw new ArgumentNullException(nameof(stringToBytes));

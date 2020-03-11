@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 
 namespace SerdesNet
 {
-    public class GenericBinaryReader2 : ISerializer
+    public class GenericBinaryReader : ISerializer
     {
         readonly Action<string> _assertionFailed;
         readonly Func<byte[], string> _bytesToString;
@@ -15,7 +15,7 @@ namespace SerdesNet
         readonly long _maxOffset;
         long _offset;
 
-        public GenericBinaryReader2(BinaryReader br, long maxLength, Func<byte[], string> bytesToString, Action<string> assertionFailed = null)
+        public GenericBinaryReader(BinaryReader br, long maxLength, Func<byte[], string> bytesToString, Action<string> assertionFailed = null)
         {
             _br = br ?? throw new ArgumentNullException(nameof(br));
             _assertionFailed = assertionFailed;
