@@ -28,6 +28,18 @@ namespace SerdesNet
         public void Indent() { }
         public void Unindent() { }
         public void NewLine() { }
+        public void Check() { }
+        public bool IsComplete() => false;
+        public void Meta(string name, Action<ISerializer> serializer, Action<ISerializer> deserializer) => serializer(this);
+        public T Meta<T>(string name, T existing, Func<int, T, ISerializer, T> serdes) => serdes(0, existing, this);
+
+        public TMemory Transform<TPersistent, TMemory>(
+                string name,
+                TMemory existing,
+                Func<string, TPersistent, TPersistent> serializer,
+                IConverter<TPersistent, TMemory> converter) =>
+            converter.ToMemory(serializer(name, converter.ToPersistent(existing)));
+
         public long Offset
         {
             get
@@ -127,15 +139,6 @@ namespace SerdesNet
             _bw.Write(Enumerable.Repeat(v, length).ToArray());
             _offset += length;
         }
-
-        public TMemory Transform<TPersistent, TMemory>(string name, TMemory existing, Func<string, TPersistent, TPersistent> serializer, IConverter<TPersistent, TMemory> converter) =>
-            converter.ToMemory(serializer(name, converter.ToPersistent(existing)));
-
-        public void Meta(string name, Action<ISerializer> serializer, Action<ISerializer> deserializer) => serializer(this);
-        public T Meta<T>(string name, T existing, Func<int, T, ISerializer, T> serdes) => serdes(0, existing, this);
-
-        public void Check() { }
-        public bool IsComplete() => false;
 
         public void List<TTarget>(IList<TTarget> list, int count, Func<int, TTarget, ISerializer, TTarget> serializer) where TTarget : class
         {

@@ -69,6 +69,16 @@ namespace SerdesNet
         public T EnumU16<T>(string name, T existing) where T : struct, Enum { _offset += 2L; return (T)(object)_br.ReadUInt16(); }
         public T EnumU32<T>(string name, T existing) where T : struct, Enum { _offset += 4L; return (T)(object)_br.ReadUInt32(); }
         public Guid Guid(string name, Guid existing) { _offset += 16L; return new Guid(_br.ReadBytes(16)); }
+        public void Meta(string name, Action<ISerializer> deserializer, Action<ISerializer> serializer) => deserializer(this);
+        public T Meta<T>(string name, T existing, Func<int, T, ISerializer, T> serdes) => serdes(0, existing, this);
+
+        public TMemory Transform<TPersistent, TMemory>(
+                string name,
+                TMemory existing,
+                Func<string, TPersistent, TPersistent> serializer,
+                IConverter<TPersistent, TMemory> converter) =>
+            converter.ToMemory(serializer(name, converter.ToPersistent(existing)));
+
 
         public byte[] ByteArray(string name, byte[] existing, int n)
         {
@@ -121,30 +131,6 @@ namespace SerdesNet
                 if (b != v) throw new InvalidOperationException("Unexpected value found in repeating byte pattern");
             _offset += length;
         }
-
-        public TMemory Transform<TPersistent, TMemory>(string name, TMemory existing, Func<string, TPersistent, TPersistent> serializer, IConverter<TPersistent, TMemory> converter) =>
-            converter.ToMemory(serializer(name, converter.ToPersistent(existing)));
-
-        public void Meta(string name, Action<ISerializer> deserializer, Action<ISerializer> serializer) => deserializer(this);
-        public T Meta<T>(string name, T existing, Func<int, T, ISerializer, T> serdes) => serdes(0, existing, this);
-/*
-        public void Dynamic<TTarget>(TTarget target, string propertyName)
-        {
-            SerializationInfo<TTarget> serializer = SerializationInfo.Get<TTarget>(propertyName);
-            switch (serializer)
-            {
-                case SerializationInfo<TTarget, byte>   s: s.Setter(target, _br.ReadByte()); break;
-                case SerializationInfo<TTarget, sbyte>  s: s.Setter(target, _br.ReadSByte()); break;
-                case SerializationInfo<TTarget, ushort> s: s.Setter(target, _br.ReadUInt16()); break;
-                case SerializationInfo<TTarget, short>  s: s.Setter(target, _br.ReadInt16()); break;
-                case SerializationInfo<TTarget, uint>   s: s.Setter(target, _br.ReadUInt32()); break;
-                case SerializationInfo<TTarget, int>    s: s.Setter(target, _br.ReadInt32()); break;
-                case SerializationInfo<TTarget, ulong>  s: s.Setter(target, _br.ReadUInt64()); break;
-                case SerializationInfo<TTarget, long>   s: s.Setter(target, _br.ReadInt64()); break;
-                default: throw new InvalidOperationException($"Tried to serialize unexpected type {serializer.Type}");
-            }
-            _offset += serializer.Size;
-        }*/
 
         public void List<TTarget>(IList<TTarget> list, int count, Func<int, TTarget, ISerializer, TTarget> serdes) where TTarget : class
         {

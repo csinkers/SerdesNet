@@ -48,8 +48,16 @@ namespace SerdesNet
         public void Unindent() => _indent -= 4;
         public void NewLine() => _tw.WriteLine();
         public long Offset { get; private set; }
-
         public void Seek(long newOffset) { _tw.WriteLine("{1:X} Seek to {0:X} for overwrite", newOffset, Offset); Offset = newOffset; }
+        public void Check() { }
+        public bool IsComplete() => false;
+
+        public TMemory Transform<TPersistent, TMemory>(
+                string name,
+                TMemory existing,
+                Func<string, TPersistent, TPersistent> serializer,
+                IConverter<TPersistent, TMemory> converter) =>
+            converter.ToMemory(serializer(name, converter.ToPersistent(existing)));
 
         public sbyte Int8(string name, sbyte existing)
         {
@@ -257,9 +265,6 @@ namespace SerdesNet
             Offset += length;
         }
 
-        public TMemory Transform<TPersistent, TMemory>(string name, TMemory existing, Func<string, TPersistent, TPersistent> serializer, IConverter<TPersistent, TMemory> converter) =>
-            converter.ToMemory(serializer(name, converter.ToPersistent(existing)));
-
         public void Meta(string name, Action<ISerializer> serializer, Action<ISerializer> deserializer)
         {
             _indent += 4;
@@ -278,26 +283,6 @@ namespace SerdesNet
             _indent -= 4;
             return result;
         }
-
-        public void Check() { }
-        public bool IsComplete() => false;
-/*
-        public void Dynamic<TTarget>(TTarget target, string propertyName)
-        {
-            var serializer = SerializationInfo.Get<TTarget>(propertyName);
-            switch (serializer)
-            {
-                case SerializationInfo<TTarget, byte>   s: UInt8( s.Name, s.Getter(target)); break;
-                case SerializationInfo<TTarget, sbyte>  s:  Int8( s.Name, s.Getter(target)); break;
-                case SerializationInfo<TTarget, ushort> s: UInt16(s.Name, s.Getter(target)); break;
-                case SerializationInfo<TTarget, short>  s:  Int16(s.Name, s.Getter(target)); break;
-                case SerializationInfo<TTarget, uint>   s: UInt32(s.Name, s.Getter(target)); break;
-                case SerializationInfo<TTarget, int>    s:  Int32(s.Name, s.Getter(target)); break;
-                case SerializationInfo<TTarget, ulong>  s: UInt64(s.Name, s.Getter(target)); break;
-                case SerializationInfo<TTarget, long>   s:  Int64(s.Name, s.Getter(target)); break;
-                default: throw new InvalidOperationException($"Tried to serialize unexpected type {serializer.Type}");
-            }
-        } */
 
         public void List<TTarget>(IList<TTarget> list, int count, Func<int, TTarget, ISerializer, TTarget> serializer) where TTarget : class
         {
