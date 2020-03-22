@@ -157,7 +157,7 @@ namespace SerdesNet
             return existing;
         }
 
-        static string ConvertToHexString(byte[] bytes)
+        public static string ConvertToHexString(byte[] bytes)
         {
             var result = new StringBuilder(bytes.Length * 2);
             foreach (var b in bytes)
