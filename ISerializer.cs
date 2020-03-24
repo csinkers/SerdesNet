@@ -7,6 +7,7 @@ namespace SerdesNet
     {
         SerializerMode Mode { get; }
         long Offset { get; } // For recording offsets to be overwritten later
+        long BytesRemaining { get; }
         void Comment(string comment); // Only affects annotating writers
         void Indent(); // Only affects annotating writers
         void Unindent(); // Only affects annotating writers
@@ -98,5 +99,12 @@ namespace SerdesNet
         public static ushort UInt16BE(this ISerializer s, string name, ushort existing) => SwapBytes16(s.UInt16(name, SwapBytes16(existing)));
         public static uint UInt32BE(this ISerializer s, string name, uint existing) => SwapBytes32(s.UInt32(name, SwapBytes32(existing)));
         public static ulong UInt64BE(this ISerializer s, string name, ulong existing) => SwapBytes64(s.UInt64(name, SwapBytes64(existing)));
+
+        public static T EnumU16BE<T>(this ISerializer s, string name, T existing)  where T : struct, Enum
+
+            => (T)(object)SwapBytes16(s.UInt16(name, SwapBytes16((ushort)(object)existing)));
+        public static T EnumU32BE<T>(this ISerializer s, string name, T existing)  where T : struct, Enum
+
+            => (T)(object)SwapBytes32(s.UInt32(name, SwapBytes32((uint)(object)existing)));
     }
 }

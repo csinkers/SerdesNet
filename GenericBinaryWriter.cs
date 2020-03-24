@@ -24,6 +24,7 @@ namespace SerdesNet
         public SerializerMode Mode => SerializerMode.Writing;
         public void PushVersion(int version) => _versionStack.Push(version);
         public int PopVersion() => _versionStack.Count == 0 ? 0 : _versionStack.Pop();
+        public long BytesRemaining => long.MaxValue;
         public void Comment(string msg) { }
         public void Indent() { }
         public void Unindent() { }

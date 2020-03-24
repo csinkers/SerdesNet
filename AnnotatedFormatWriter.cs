@@ -48,6 +48,7 @@ namespace SerdesNet
         public void Unindent() => _indent -= 4;
         public void NewLine() => _tw.WriteLine();
         public long Offset { get; private set; }
+        public long BytesRemaining => long.MaxValue;
         public void Seek(long newOffset) { _tw.WriteLine("{1:X} Seek to {0:X} for overwrite", newOffset, Offset); Offset = newOffset; }
         public void Check() { }
         public bool IsComplete() => false;

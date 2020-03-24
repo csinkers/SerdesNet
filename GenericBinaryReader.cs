@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 
@@ -27,6 +26,7 @@ namespace SerdesNet
         public SerializerMode Mode => SerializerMode.Reading;
         public void PushVersion(int version) => _versionStack.Push(version);
         public int PopVersion() => _versionStack.Count == 0 ? 0 : _versionStack.Pop();
+        public long BytesRemaining => _maxOffset - _offset;
         public void Comment(string msg) { }
         public void Indent() { }
         public void Unindent() { }
@@ -37,7 +37,7 @@ namespace SerdesNet
             {
                 Assert(_offset == _br.BaseStream.Position);
                 if(_br.BaseStream.Position > _maxOffset)
-                    Debug.Fail("Buffer overrun in binary reader");
+                    _assertionFailed("Buffer overrun in binary reader");
                 return _offset;
             }
         }
@@ -46,7 +46,7 @@ namespace SerdesNet
         {
             Assert(_offset == _br.BaseStream.Position);
             if (_br.BaseStream.Position > _maxOffset)
-                Debug.Fail("Buffer overrun in binary reader");
+                _assertionFailed("Buffer overrun in binary reader");
         }
 
         public bool IsComplete() => _br.BaseStream.Position >= _maxOffset;
