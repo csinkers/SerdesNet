@@ -30,7 +30,7 @@ namespace SerdesNet
 
         readonly Stack<int> _versionStack = new Stack<int>();
         readonly TextWriter _tw;
-        int _indent = 0;
+        int _indent;
 
         public AnnotatedFormatWriter(TextWriter textWriter, AnnotatedFormatWriter existing = null)
         {
@@ -219,7 +219,7 @@ namespace SerdesNet
             {
                 var missingChars = 16 - sb.Length;
                 var spaceCount = missingChars * 2 + missingChars / 2 + 1;
-                _tw.Write(Enumerable.Repeat(' ', spaceCount));
+                _tw.Write(new string(Enumerable.Repeat(' ', spaceCount).ToArray()));
                 _tw.Write(sb.ToString());
             }
 
