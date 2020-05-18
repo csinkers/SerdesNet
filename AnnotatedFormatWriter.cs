@@ -290,8 +290,16 @@ namespace SerdesNet
             _indent += 4;
             DoIndent();
             _tw.WriteLine("[ ");
+            _indent += 4;
             for (int i = 0; i < count; i++)
+            {
+                DoIndent();
+                _tw.WriteLine("// {0}", i);
                 serializer(i, list[i], this);
+            }
+
+            _indent -= 4;
+            DoIndent();
             _tw.WriteLine(" ]");
             _indent -= 4;
         }
