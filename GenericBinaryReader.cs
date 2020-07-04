@@ -132,7 +132,7 @@ namespace SerdesNet
             _offset += length;
         }
 
-        public void List<TTarget>(IList<TTarget> list, int count, Func<int, TTarget, ISerializer, TTarget> serdes) where TTarget : class
+        public void List<TTarget>(string name, IList<TTarget> list, int count, Func<int, TTarget, ISerializer, TTarget> serdes) where TTarget : class
         {
             for (int i = 0; i < count; i++)
             {
@@ -144,7 +144,7 @@ namespace SerdesNet
             }
         }
 
-        public void List<TTarget>(IList<TTarget> list, int count, int offset, Func<int, TTarget, ISerializer, TTarget> serdes) where TTarget : class
+        public void List<TTarget>(string name, IList<TTarget> list, int count, int offset, Func<int, TTarget, ISerializer, TTarget> serdes) where TTarget : class
         {
             while(list.Count < offset)
                 list.Add(null);

@@ -141,13 +141,13 @@ namespace SerdesNet
             _offset += length;
         }
 
-        public void List<TTarget>(IList<TTarget> list, int count, Func<int, TTarget, ISerializer, TTarget> serializer) where TTarget : class
+        public void List<TTarget>(string name, IList<TTarget> list, int count, Func<int, TTarget, ISerializer, TTarget> serializer) where TTarget : class
         {
             for (int i = 0; i < count; i++)
                 serializer(i, list[i], this);
         }
 
-        public void List<TTarget>(IList<TTarget> list, int count, int offset, Func<int, TTarget, ISerializer, TTarget> serializer) where TTarget : class
+        public void List<TTarget>(string name, IList<TTarget> list, int count, int offset, Func<int, TTarget, ISerializer, TTarget> serializer) where TTarget : class
         {
             for (int i = offset; i < count + offset; i++)
                 serializer(i, list[i], this);

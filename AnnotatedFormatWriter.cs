@@ -285,11 +285,11 @@ namespace SerdesNet
             return result;
         }
 
-        public void List<TTarget>(IList<TTarget> list, int count, Func<int, TTarget, ISerializer, TTarget> serializer) where TTarget : class
+        public void List<TTarget>(string name, IList<TTarget> list, int count, Func<int, TTarget, ISerializer, TTarget> serializer) where TTarget : class
         {
             _indent += 4;
             DoIndent();
-            _tw.WriteLine("[ ");
+            _tw.WriteLine("[ // {0}", name);
             _indent += 4;
             for (int i = 0; i < count; i++)
             {
@@ -304,11 +304,11 @@ namespace SerdesNet
             _indent -= 4;
         }
 
-        public void List<TTarget>(IList<TTarget> list, int count, int offset, Func<int, TTarget, ISerializer, TTarget> serializer) where TTarget : class
+        public void List<TTarget>(string name, IList<TTarget> list, int count, int offset, Func<int, TTarget, ISerializer, TTarget> serializer) where TTarget : class
         {
             _indent += 4;
             DoIndent();
-            _tw.WriteLine("[ ");
+            _tw.WriteLine("[ // {0}", name);
             for (int i = offset; i < offset + count; i++)
                 serializer(i, list[i], this);
             _tw.WriteLine(" ]");

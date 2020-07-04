@@ -50,8 +50,8 @@ namespace SerdesNet
         T Meta<T>(string name, T existing, Func<int, T, ISerializer, T> serdes);
 
         // void Dynamic<TTarget>(TTarget target, string propertyName);
-        void List<TTarget>(IList<TTarget> list, int count, Func<int, TTarget, ISerializer, TTarget> serdes) where TTarget : class;
-        void List<TTarget>(IList<TTarget> list, int count, int offset, Func<int, TTarget, ISerializer, TTarget> serializer) where TTarget : class;
+        void List<TTarget>(string name, IList<TTarget> list, int count, Func<int, TTarget, ISerializer, TTarget> serdes) where TTarget : class;
+        void List<TTarget>(string name, IList<TTarget> list, int count, int offset, Func<int, TTarget, ISerializer, TTarget> serializer) where TTarget : class;
     }
 
     public static class SerializerExtensions
