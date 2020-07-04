@@ -1,2 +1,2 @@
 @echo off
-dotnet pack
+dotnet pack -c Release
