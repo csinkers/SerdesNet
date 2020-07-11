@@ -9,8 +9,8 @@ namespace SerdesNet
         long Offset { get; } // For recording offsets to be overwritten later
         long BytesRemaining { get; }
         void Comment(string comment); // Only affects annotating writers
-        void Indent(); // Only affects annotating writers
-        void Unindent(); // Only affects annotating writers
+        void Begin(string name = null); // Only affects annotating writers
+        void End(); // Only affects annotating writers
         void NewLine(); // Only affects annotating writers
         void Seek(long offset); // For overwriting pre-recorded offsets
         void Check(); // Ensure offset matches stream position
@@ -30,13 +30,10 @@ namespace SerdesNet
         T EnumU8<T>(string name, T existing) where T : struct, Enum;
         T EnumU16<T>(string name, T existing) where T : struct, Enum;
         T EnumU32<T>(string name, T existing) where T : struct, Enum;
-
-        TMemory Transform<TPersistent, TMemory>(string name, TMemory existing, Func<string, TPersistent, TPersistent> serializer, IConverter<TPersistent, TMemory> converter);
-        /*
-            var persistent = converter.ToPersistent(existing);
-            persistent = serializer(persistent);
-            return converter.ToMemory(persistent);
-         */
+        T Transform<TNumeric, T>(string name, T existing, Func<string, TNumeric, TNumeric> serializer, IConverter<TNumeric, T> converter);
+        T TransformEnumU8<T>(string name, T existing, IConverter<byte, T> converter);
+        T TransformEnumU16<T>(string name, T existing, IConverter<ushort, T> converter);
+        T TransformEnumU32<T>(string name, T existing, IConverter<uint, T> converter);
 
         Guid Guid(string name, Guid existing);
         byte[] ByteArray(string name, byte[] existing, int length);
@@ -44,14 +41,11 @@ namespace SerdesNet
         byte[] ByteArray2(string name, byte[] existing, int length, string coment);
         string NullTerminatedString(string name, string existing);
         string FixedLengthString(string name, string existing, int length);
-
         void RepeatU8(string name, byte value, int count); // Either writes a block of padding or verifies the consistency of one while reading
         void Meta(string name, Action<ISerializer> reader, Action<ISerializer> writer); // name serializer deserializer
         T Meta<T>(string name, T existing, Func<int, T, ISerializer, T> serdes);
-
-        // void Dynamic<TTarget>(TTarget target, string propertyName);
-        void List<TTarget>(string name, IList<TTarget> list, int count, Func<int, TTarget, ISerializer, TTarget> serdes) where TTarget : class;
-        void List<TTarget>(string name, IList<TTarget> list, int count, int offset, Func<int, TTarget, ISerializer, TTarget> serializer) where TTarget : class;
+        IList<TTarget> List<TTarget>(string name, IList<TTarget> list, int count, Func<int, TTarget, ISerializer, TTarget> serdes);
+        IList<TTarget> List<TTarget>(string name, IList<TTarget> list, int count, int offset, Func<int, TTarget, ISerializer, TTarget> serializer);
     }
 
     public static class SerializerExtensions

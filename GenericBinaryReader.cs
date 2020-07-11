@@ -28,8 +28,8 @@ namespace SerdesNet
         public int PopVersion() => _versionStack.Count == 0 ? 0 : _versionStack.Pop();
         public long BytesRemaining => _maxOffset - _offset;
         public void Comment(string msg) { }
-        public void Indent() { }
-        public void Unindent() { }
+        public void Begin(string name) { }
+        public void End() { }
         public void NewLine() { }
         public long Offset
         {
@@ -77,8 +77,14 @@ namespace SerdesNet
                 TMemory existing,
                 Func<string, TPersistent, TPersistent> serializer,
                 IConverter<TPersistent, TMemory> converter) =>
-            converter.ToMemory(serializer(name, converter.ToPersistent(existing)));
+            converter.FromNumeric(serializer(name, converter.ToNumeric(existing)));
 
+        public T TransformEnumU8<T>(string name, T existing, IConverter<byte, T> converter) 
+            => converter.FromNumeric(UInt8(name, converter.ToNumeric(existing)));
+        public T TransformEnumU16<T>(string name, T existing, IConverter<ushort, T> converter) 
+            => converter.FromNumeric(UInt16(name, converter.ToNumeric(existing)));
+        public T TransformEnumU32<T>(string name, T existing, IConverter<uint, T> converter) 
+            => converter.FromNumeric(UInt32(name, converter.ToNumeric(existing)));
 
         public byte[] ByteArray(string name, byte[] existing, int n)
         {
@@ -127,37 +133,38 @@ namespace SerdesNet
         public void RepeatU8(string name, byte v, int length)
         {
             var bytes = _br.ReadBytes(length);
-            foreach(var b in bytes)
+            foreach (var b in bytes)
                 if (b != v) throw new InvalidOperationException("Unexpected value found in repeating byte pattern");
             _offset += length;
         }
 
-        public void List<TTarget>(string name, IList<TTarget> list, int count, Func<int, TTarget, ISerializer, TTarget> serdes) where TTarget : class
+        public IList<TTarget> List<TTarget>(string name, IList<TTarget> list, int count, Func<int, TTarget, ISerializer, TTarget> serdes)
         {
+            list = list ?? new List<TTarget>();
             for (int i = 0; i < count; i++)
             {
-                var x = serdes(i, null, this);
+                var x = serdes(i, default, this);
                 if (list.Count <= i)
                     list.Add(x);
                 else
                     list[i] = x;
             }
+            return list;
         }
 
-        public void List<TTarget>(string name, IList<TTarget> list, int count, int offset, Func<int, TTarget, ISerializer, TTarget> serdes) where TTarget : class
+        public IList<TTarget> List<TTarget>(string name, IList<TTarget> list, int count, int offset, Func<int, TTarget, ISerializer, TTarget> serdes)
         {
-            while(list.Count < offset)
-                list.Add(null);
-
+            list = list ?? new List<TTarget>();
             for (int i = offset; i < offset + count; i++)
             {
-                var x = serdes(i, null, this);
+                var x = serdes(i, default, this);
 
                 if (list.Count <= i)
                     list.Add(x);
                 else
                     list[i] = x;
             }
+            return list;
         }
 
         void Assert(bool result, string message = null, [CallerMemberName] string function = "", [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)

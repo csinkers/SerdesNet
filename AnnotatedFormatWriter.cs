@@ -44,8 +44,8 @@ namespace SerdesNet
         public void PushVersion(int version) => _versionStack.Push(version);
         public int PopVersion() => _versionStack.Count == 0 ? 0 : _versionStack.Pop();
         public void Comment(string msg) { DoIndent(); _tw.WriteLine("// {0}", msg); }
-        public void Indent() => _indent += 4;
-        public void Unindent() => _indent -= 4;
+        public void Begin(string name) => _indent += 4;
+        public void End() => _indent -= 4;
         public void NewLine() => _tw.WriteLine();
         public long Offset { get; private set; }
         public long BytesRemaining => long.MaxValue;
@@ -58,7 +58,14 @@ namespace SerdesNet
                 TMemory existing,
                 Func<string, TPersistent, TPersistent> serializer,
                 IConverter<TPersistent, TMemory> converter) =>
-            converter.ToMemory(serializer(name, converter.ToPersistent(existing)));
+            converter.FromNumeric(serializer(name, converter.ToNumeric(existing)));
+
+        public T TransformEnumU8<T>(string name, T existing, IConverter<byte, T> converter) 
+            => converter.FromNumeric(UInt8(name, converter.ToNumeric(existing)));
+        public T TransformEnumU16<T>(string name, T existing, IConverter<ushort, T> converter) 
+            => converter.FromNumeric(UInt16(name, converter.ToNumeric(existing)));
+        public T TransformEnumU32<T>(string name, T existing, IConverter<uint, T> converter) 
+            => converter.FromNumeric(UInt32(name, converter.ToNumeric(existing)));
 
         public sbyte Int8(string name, sbyte existing)
         {
@@ -190,7 +197,7 @@ namespace SerdesNet
             DoIndent();
             _tw.Write("{0:X} {1} = ", Offset, name);
 
-            Indent();
+            Begin(null);
             var payloadOffset = 0;
             var sb = new StringBuilder(16);
             foreach (var b in v)
@@ -224,7 +231,7 @@ namespace SerdesNet
             }
 
             _tw.WriteLine();
-            Unindent();
+            End();
             Offset += v.Length;
             return existing;
         }
@@ -285,8 +292,9 @@ namespace SerdesNet
             return result;
         }
 
-        public void List<TTarget>(string name, IList<TTarget> list, int count, Func<int, TTarget, ISerializer, TTarget> serializer) where TTarget : class
+        public IList<TTarget> List<TTarget>(string name, IList<TTarget> list, int count, Func<int, TTarget, ISerializer, TTarget> serializer)
         {
+            list = list ?? new List<TTarget>(count);
             _indent += 4;
             DoIndent();
             _tw.WriteLine("[ // {0}", name);
@@ -302,10 +310,12 @@ namespace SerdesNet
             DoIndent();
             _tw.WriteLine(" ]");
             _indent -= 4;
+            return list;
         }
 
-        public void List<TTarget>(string name, IList<TTarget> list, int count, int offset, Func<int, TTarget, ISerializer, TTarget> serializer) where TTarget : class
+        public IList<TTarget> List<TTarget>(string name, IList<TTarget> list, int count, int offset, Func<int, TTarget, ISerializer, TTarget> serializer)
         {
+            list = list ?? new List<TTarget>(count);
             _indent += 4;
             DoIndent();
             _tw.WriteLine("[ // {0}", name);
@@ -313,6 +323,7 @@ namespace SerdesNet
                 serializer(i, list[i], this);
             _tw.WriteLine(" ]");
             _indent -= 4;
+            return list;
         }
     }
 }

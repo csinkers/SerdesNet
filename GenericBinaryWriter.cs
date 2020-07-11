@@ -26,8 +26,8 @@ namespace SerdesNet
         public int PopVersion() => _versionStack.Count == 0 ? 0 : _versionStack.Pop();
         public long BytesRemaining => long.MaxValue;
         public void Comment(string msg) { }
-        public void Indent() { }
-        public void Unindent() { }
+        public void Begin(string name) { }
+        public void End() { }
         public void NewLine() { }
         public void Check() { }
         public bool IsComplete() => false;
@@ -39,7 +39,14 @@ namespace SerdesNet
                 TMemory existing,
                 Func<string, TPersistent, TPersistent> serializer,
                 IConverter<TPersistent, TMemory> converter) =>
-            converter.ToMemory(serializer(name, converter.ToPersistent(existing)));
+            converter.FromNumeric(serializer(name, converter.ToNumeric(existing)));
+
+        public T TransformEnumU8<T>(string name, T existing, IConverter<byte, T> converter) 
+            => converter.FromNumeric(UInt8(name, converter.ToNumeric(existing)));
+        public T TransformEnumU16<T>(string name, T existing, IConverter<ushort, T> converter) 
+            => converter.FromNumeric(UInt16(name, converter.ToNumeric(existing)));
+        public T TransformEnumU32<T>(string name, T existing, IConverter<uint, T> converter) 
+            => converter.FromNumeric(UInt32(name, converter.ToNumeric(existing)));
 
         public long Offset
         {
@@ -141,16 +148,20 @@ namespace SerdesNet
             _offset += length;
         }
 
-        public void List<TTarget>(string name, IList<TTarget> list, int count, Func<int, TTarget, ISerializer, TTarget> serializer) where TTarget : class
+        public IList<TTarget> List<TTarget>(string name, IList<TTarget> list, int count, Func<int, TTarget, ISerializer, TTarget> serializer)
         {
+            list = list ?? new TTarget[count];
             for (int i = 0; i < count; i++)
                 serializer(i, list[i], this);
+            return list;
         }
 
-        public void List<TTarget>(string name, IList<TTarget> list, int count, int offset, Func<int, TTarget, ISerializer, TTarget> serializer) where TTarget : class
+        public IList<TTarget> List<TTarget>(string name, IList<TTarget> list, int count, int offset, Func<int, TTarget, ISerializer, TTarget> serializer)
         {
+            list = list ?? new TTarget[count];
             for (int i = offset; i < count + offset; i++)
                 serializer(i, list[i], this);
+            return list;
         }
 
         void Assert(bool result, string message = null, [CallerMemberName] string function = "", [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)

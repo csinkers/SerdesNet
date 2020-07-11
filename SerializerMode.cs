@@ -5,5 +5,6 @@
         Reading,
         Writing,
         WritingAnnotated,
+        WritingJson,
     }
 }

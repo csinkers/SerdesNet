@@ -1,8 +1,10 @@
 ﻿namespace SerdesNet
 {
-    public interface IConverter<TPersistent, TMemory>
+    public interface IConverter<TNumeric, T>
     {
-        TPersistent ToPersistent(TMemory memory);
-        TMemory ToMemory(TPersistent persistent);
+        TNumeric ToNumeric(T memory);
+        T FromNumeric(TNumeric persistent);
+        string ToSymbolic(T memory);
+        T FromSymbolic(string symbolic);
     }
 }
