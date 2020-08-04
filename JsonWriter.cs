@@ -579,7 +579,12 @@ namespace SerdesNet
             return result;
         }
 
-        public IList<TTarget> List<TTarget>(string name, IList<TTarget> list, int count, Func<int, TTarget, ISerializer, TTarget> serializer)
+        public IList<TTarget> List<TTarget>(
+            string name,
+            IList<TTarget> list,
+            int count,
+            Func<int, TTarget, ISerializer, TTarget> serdes,
+            Func<int, IList<TTarget>> initialiser = null)
         {
             if (!_first)
             {
@@ -597,7 +602,7 @@ namespace SerdesNet
                 _first = true;
                 DoIndent();
                 for (int i = 0; i < count; i++)
-                    serializer(i, list[i], this);
+                    serdes(i, list[i], this);
 
                 _indent -= 4;
                 _tw.WriteLine();
@@ -609,7 +614,13 @@ namespace SerdesNet
             return list;
         }
 
-        public IList<TTarget> List<TTarget>(string name, IList<TTarget> list, int count, int offset, Func<int, TTarget, ISerializer, TTarget> serializer)
+        public IList<TTarget> List<TTarget>(
+            string name,
+            IList<TTarget> list,
+            int count,
+            int offset,
+            Func<int, TTarget, ISerializer, TTarget> serializer,
+            Func<int, IList<TTarget>> initialiser = null)
         {
             if (!_first)
             {

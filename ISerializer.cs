@@ -44,8 +44,20 @@ namespace SerdesNet
         void RepeatU8(string name, byte value, int count); // Either writes a block of padding or verifies the consistency of one while reading
         void Meta(string name, Action<ISerializer> reader, Action<ISerializer> writer); // name serializer deserializer
         T Meta<T>(string name, T existing, Func<int, T, ISerializer, T> serdes);
-        IList<TTarget> List<TTarget>(string name, IList<TTarget> list, int count, Func<int, TTarget, ISerializer, TTarget> serdes);
-        IList<TTarget> List<TTarget>(string name, IList<TTarget> list, int count, int offset, Func<int, TTarget, ISerializer, TTarget> serializer);
+        IList<TTarget> List<TTarget>(
+            string name,
+            IList<TTarget> list,
+            int count,
+            Func<int, TTarget, ISerializer, TTarget> serdes,
+            Func<int, IList<TTarget>> initialiser = null);
+
+        IList<TTarget> List<TTarget>(
+            string name,
+            IList<TTarget> list,
+            int count,
+            int offset,
+            Func<int, TTarget, ISerializer, TTarget> serializer,
+            Func<int, IList<TTarget>> initialiser = null);
     }
 
     public static class SerializerExtensions

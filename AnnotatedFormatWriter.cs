@@ -292,9 +292,14 @@ namespace SerdesNet
             return result;
         }
 
-        public IList<TTarget> List<TTarget>(string name, IList<TTarget> list, int count, Func<int, TTarget, ISerializer, TTarget> serializer)
+        public IList<TTarget> List<TTarget>(
+            string name,
+            IList<TTarget> list,
+            int count,
+            Func<int, TTarget, ISerializer, TTarget> serializer,
+            Func<int, IList<TTarget>> initialiser = null)
         {
-            list = list ?? new List<TTarget>(count);
+            list = list ?? initialiser?.Invoke(count) ?? new List<TTarget>();
             _indent += 4;
             DoIndent();
             _tw.WriteLine("[ // {0}", name);
@@ -313,9 +318,15 @@ namespace SerdesNet
             return list;
         }
 
-        public IList<TTarget> List<TTarget>(string name, IList<TTarget> list, int count, int offset, Func<int, TTarget, ISerializer, TTarget> serializer)
+        public IList<TTarget> List<TTarget>(
+            string name,
+            IList<TTarget> list,
+            int count,
+            int offset,
+            Func<int, TTarget, ISerializer, TTarget> serializer,
+            Func<int, IList<TTarget>> initialiser = null)
         {
-            list = list ?? new List<TTarget>(count);
+            list = list ?? initialiser?.Invoke(count) ?? new List<TTarget>();
             _indent += 4;
             DoIndent();
             _tw.WriteLine("[ // {0}", name);

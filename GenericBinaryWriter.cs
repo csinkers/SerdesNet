@@ -148,17 +148,28 @@ namespace SerdesNet
             _offset += length;
         }
 
-        public IList<TTarget> List<TTarget>(string name, IList<TTarget> list, int count, Func<int, TTarget, ISerializer, TTarget> serializer)
+        public IList<TTarget> List<TTarget>(
+            string name,
+            IList<TTarget> list,
+            int count,
+            Func<int, TTarget, ISerializer, TTarget> serializer,
+            Func<int, IList<TTarget>> initialiser = null)
         {
-            list = list ?? new TTarget[count];
+            list = list ?? initialiser?.Invoke(count) ?? new TTarget[count];
             for (int i = 0; i < count; i++)
                 serializer(i, list[i], this);
             return list;
         }
 
-        public IList<TTarget> List<TTarget>(string name, IList<TTarget> list, int count, int offset, Func<int, TTarget, ISerializer, TTarget> serializer)
+        public IList<TTarget> List<TTarget>(
+            string name,
+            IList<TTarget> list,
+            int count,
+            int offset,
+            Func<int, TTarget, ISerializer, TTarget> serializer,
+            Func<int, IList<TTarget>> initialiser = null)
         {
-            list = list ?? new TTarget[count];
+            list = list ?? initialiser?.Invoke(count) ?? new TTarget[count];
             for (int i = offset; i < count + offset; i++)
                 serializer(i, list[i], this);
             return list;
