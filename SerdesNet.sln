@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29409.12
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SerdesNet", "SerdesNet.csproj", "{170417F9-D38E-436E-AC85-102B373A2C3E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SerdesNet", "src\SerdesNet.csproj", "{170417F9-D38E-436E-AC85-102B373A2C3E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
