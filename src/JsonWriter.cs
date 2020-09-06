@@ -8,58 +8,90 @@ namespace SerdesNet
 {
     public class JsonWriter : ISerializer
     {
-        const string HexChars = "0123456789ABCDEF";
-
         readonly Stack<int> _versionStack = new Stack<int>();
         readonly TextWriter _tw;
+        readonly Encoding _binaryStringEncoding;
         readonly bool _elideDefaults;
+        readonly bool _compact;
+        readonly Action<string> _assertionFailed;
         int _indent;
         bool _first = true;
 
-        public JsonWriter(TextWriter textWriter, bool elideDefaults, JsonWriter existing = null)
+        public JsonWriter(
+            TextWriter textWriter,
+            JsonWriter existing = null,
+            Encoding binaryStringEncoding = null,
+            Action<string> assertionFailed = null,
+            bool elideDefaults = true,
+            bool compact = false)
         {
             _tw = textWriter;
+            _binaryStringEncoding = binaryStringEncoding ?? Encoding.GetEncoding(850);
             _elideDefaults = elideDefaults;
+            _compact = compact;
+            _assertionFailed = assertionFailed ?? (x => throw new InvalidOperationException(x));
             if (existing != null)
                 _indent = existing._indent;
         }
 
-        void DoIndent() => _tw.Write(new string(' ', _indent));
+        void DoIndent() { if (!_compact) _tw.Write(new string(' ', _indent)); }
+        void Comma()
+        {
+            if (_first) return;
+            if (_compact)
+                _tw.Write(", ");
+            else
+            {
+                _tw.WriteLine(',');
+                DoIndent();
+            }
+        }
+
         public SerializerMode Mode => SerializerMode.WritingJson;
         public void PushVersion(int version) => _versionStack.Push(version);
         public int PopVersion() => _versionStack.Count == 0 ? 0 : _versionStack.Pop();
-        public void Comment(string msg) { _tw.WriteLine("// {0}", msg); DoIndent(); }
-        public void Begin(string name)
+
+        public void Comment(string msg)
         {
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
+            _tw.Write("/* {0} */", msg);
+            if (_compact)
+                _tw.WriteLine();
+            DoIndent();
+        }
+        void Begin(string name)
+        {
+            Comma();
 
             if (name != null)
                 _tw.Write("\"{0}\": ", name);
 
-            _tw.WriteLine('{');
+            if (_compact)
+                _tw.Write("{ ");
+            else
+                _tw.WriteLine('{');
             _first = true;
             _indent += 4;
             DoIndent();
         }
 
-        public void End()
+        void End()
         {
             _indent -= 4;
             if (!_first)
             {
-                _tw.WriteLine();
-                DoIndent();
+                if (!_compact)
+                {
+                    _tw.WriteLine();
+                    DoIndent();
+                }
+                else _tw.Write(' ');
             }
 
             _tw.Write('}');
             _first = false;
         }
 
-        public void NewLine() => _tw.WriteLine();
+        public void NewLine() { if (!_compact) _tw.WriteLine(); }
         public long Offset { get; private set; }
         public long BytesRemaining => long.MaxValue;
 
@@ -74,21 +106,17 @@ namespace SerdesNet
         public TMemory Transform<TPersistent, TMemory>(
                 string name,
                 TMemory existing,
-                Func<string, TPersistent, TPersistent> serializer,
+                Func<string, TPersistent, ISerializer, TPersistent> serializer,
                 IConverter<TPersistent, TMemory> converter) =>
-            converter.FromNumeric(serializer(name, converter.ToNumeric(existing)));
+            converter.FromNumeric(serializer(name, converter.ToNumeric(existing), this));
 
         public T TransformEnumU8<T>(string name, T existing, IConverter<byte, T> converter)
         {
             var symbolic = converter.ToSymbolic(existing);
-            if (_elideDefaults && symbolic == null)
+            if (_elideDefaults && symbolic == null && name != null)
                 return existing;
 
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
+            Comma();
 
             if (name != null)
                 _tw.Write("\"{0}\": ", name);
@@ -106,14 +134,10 @@ namespace SerdesNet
         public T TransformEnumU16<T>(string name, T existing, IConverter<ushort, T> converter)
         {
             var symbolic = converter.ToSymbolic(existing);
-            if (_elideDefaults && symbolic == null)
+            if (_elideDefaults && symbolic == null && name != null)
                 return existing;
 
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
+            Comma();
 
             if (name != null)
                 _tw.Write("\"{0}\": ", name);
@@ -131,14 +155,10 @@ namespace SerdesNet
         public T TransformEnumU32<T>(string name, T existing, IConverter<uint, T> converter)
         {
             var symbolic = converter.ToSymbolic(existing);
-            if (_elideDefaults && symbolic == null)
+            if (_elideDefaults && symbolic == null && name != null)
                 return existing;
 
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
+            Comma();
 
             if (name != null)
                 _tw.Write("\"{0}\": ", name);
@@ -153,16 +173,12 @@ namespace SerdesNet
             return existing;
         }
 
-        public sbyte Int8(string name, sbyte existing)
+        public sbyte Int8(string name, sbyte existing, sbyte defaultValue)
         {
-            if (_elideDefaults && existing == 0)
+            if (_elideDefaults && existing == defaultValue && name != null)
                 return existing;
 
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
+            Comma();
 
             if (name != null)
                 _tw.Write("\"{0}\": ", name);
@@ -173,16 +189,12 @@ namespace SerdesNet
             return existing;
         }
 
-        public short Int16(string name, short existing)
+        public short Int16(string name, short existing, short defaultValue)
         {
-            if (_elideDefaults && existing == 0)
+            if (_elideDefaults && existing == defaultValue && name != null)
                 return existing;
 
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
+            Comma();
 
             if (name != null)
                 _tw.Write("\"{0}\": ", name);
@@ -193,16 +205,12 @@ namespace SerdesNet
             return existing;
         }
 
-        public int Int32(string name, int existing)
+        public int Int32(string name, int existing, int defaultValue)
         {
-            if (_elideDefaults && existing == 0)
+            if (_elideDefaults && existing == defaultValue && name != null)
                 return existing;
 
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
+            Comma();
 
             if (name != null)
                 _tw.Write("\"{0}\": ", name);
@@ -213,16 +221,12 @@ namespace SerdesNet
             return existing;
         }
 
-        public long Int64(string name, long existing)
+        public long Int64(string name, long existing, long defaultValue)
         {
-            if (_elideDefaults && existing == 0)
+            if (_elideDefaults && existing == defaultValue && name != null)
                 return existing;
 
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
+            Comma();
 
             if (name != null)
                 _tw.Write("\"{0}\": ", name);
@@ -233,16 +237,12 @@ namespace SerdesNet
             return existing;
         }
 
-        public byte UInt8(string name, byte existing)
+        public byte UInt8(string name, byte existing, byte defaultValue)
         {
-            if (_elideDefaults && existing == 0)
+            if (_elideDefaults && existing == defaultValue && name != null)
                 return existing;
 
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
+            Comma();
 
             if (name != null)
                 _tw.Write("\"{0}\": ", name);
@@ -253,16 +253,12 @@ namespace SerdesNet
             return existing;
         }
 
-        public ushort UInt16(string name, ushort existing)
+        public ushort UInt16(string name, ushort existing, ushort defaultValue)
         {
-            if (_elideDefaults && existing == 0)
+            if (_elideDefaults && existing == defaultValue && name != null)
                 return existing;
 
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
+            Comma();
 
             if (name != null)
                 _tw.Write("\"{0}\": ", name);
@@ -273,16 +269,12 @@ namespace SerdesNet
             return existing;
         }
 
-        public uint UInt32(string name, uint existing)
+        public uint UInt32(string name, uint existing, uint defaultValue)
         {
-            if (_elideDefaults && existing == 0)
+            if (_elideDefaults && existing == defaultValue && name != null)
                 return existing;
 
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
+            Comma();
 
             if (name != null)
                 _tw.Write("\"{0}\": ", name);
@@ -293,16 +285,12 @@ namespace SerdesNet
             return existing;
         }
 
-        public ulong UInt64(string name, ulong existing)
+        public ulong UInt64(string name, ulong existing, ulong defaultValue)
         {
-            if (_elideDefaults && existing == 0)
+            if (_elideDefaults && existing == defaultValue && name != null)
                 return existing;
 
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
+            Comma();
 
             if (name != null)
                 _tw.Write("\"{0}\": ", name);
@@ -315,14 +303,10 @@ namespace SerdesNet
 
         public T EnumU8<T>(string name, T existing) where T : struct, Enum
         {
-            if (_elideDefaults && (byte)(object)existing == 0)
+            if (_elideDefaults && (byte)(object)existing == 0 && name != null)
                 return existing;
 
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
+            Comma();
 
             if (name != null)
                 _tw.Write("\"{0}\": ", name);
@@ -335,14 +319,10 @@ namespace SerdesNet
 
         public T EnumU16<T>(string name, T existing) where T : struct, Enum
         {
-            if (_elideDefaults && (ushort)(object)existing == 0)
+            if (_elideDefaults && (ushort)(object)existing == 0 && name != null)
                 return existing;
 
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
+            Comma();
 
             if (name != null)
                 _tw.Write("\"{0}\": ", name);
@@ -355,14 +335,10 @@ namespace SerdesNet
 
         public T EnumU32<T>(string name, T existing) where T : struct, Enum
         {
-            if (_elideDefaults && (uint)(object)existing == 0)
+            if (_elideDefaults && (uint)(object)existing == 0 && name != null)
                 return existing;
 
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
+            Comma();
 
             if (name != null)
                 _tw.Write("\"{0}\": ", name);
@@ -375,11 +351,7 @@ namespace SerdesNet
 
         public Guid Guid(string name, Guid existing)
         {
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
+            Comma();
 
             if (name != null)
                 _tw.Write("\"{0}\": ", name);
@@ -390,47 +362,14 @@ namespace SerdesNet
             return existing;
         }
 
-        public static string ConvertToHexString(byte[] bytes)
-        {
-            var result = new StringBuilder(bytes.Length * 2);
-            foreach (var b in bytes)
-            {
-                result.Append(HexChars[b >> 4]);
-                result.Append(HexChars[b & 0xf]);
-            }
-
-            return result.ToString();
-        }
-
         public byte[] ByteArray(string name, byte[] existing, int n)
         {
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
+            Comma();
 
             if (name != null)
                 _tw.Write("\"{0}\": ", name);
 
-            _tw.Write("\"{0}\"", ConvertToHexString(existing));
-            _first = false;
-            Offset += existing.Length;
-            return existing;
-        }
-
-        public byte[] ByteArray2(string name, byte[] existing, int n, string comment)
-        {
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
-
-            if (name != null)
-                _tw.Write("\"{0}\": ", name);
-
-            _tw.Write("\"{0}\"", ConvertToHexString(existing));
+            _tw.Write("\"{0}\"", Util.ConvertToHexString(existing));
             _first = false;
             Offset += existing.Length;
             return existing;
@@ -438,11 +377,7 @@ namespace SerdesNet
 
         public byte[] ByteArrayHex(string name, byte[] existing, int n)
         {
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
+            Comma();
 
             if (name != null)
                 _tw.Write("\"{0}\": \"", name);
@@ -489,11 +424,7 @@ namespace SerdesNet
 
         public string NullTerminatedString(string name, string existing)
         {
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
+            Comma();
 
             if (name != null)
                 _tw.Write("\"{0}\": ", name);
@@ -501,18 +432,14 @@ namespace SerdesNet
             _tw.Write("\"{0}\"", existing);
             _first = false;
 
-            var bytes = Encoding.GetEncoding(850).GetBytes(existing);
+            var bytes = _binaryStringEncoding.GetBytes(existing);
             Offset += bytes.Length + 1; // add a byte for the null terminator
             return existing;
         }
 
         public string FixedLengthString(string name, string existing, int length)
         {
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
+            Comma();
 
             if (name != null)
                 _tw.Write("\"{0}\": ", name);
@@ -520,20 +447,16 @@ namespace SerdesNet
             _tw.Write("\"{0}\"", existing);
             _first = false;
 
-            var bytes = Encoding.GetEncoding(850).GetBytes(existing);
-            if (bytes.Length > length + 1) throw new InvalidOperationException("Tried to write overlength string");
+            var bytes = _binaryStringEncoding.GetBytes(existing);
+            if (bytes.Length > length) _assertionFailed("Tried to write overlength string");
 
-            Offset += length; // add a byte for the null terminator
+            Offset += length;
             return existing;
         }
 
         public void RepeatU8(string name, byte v, int length)
         {
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
+            Comma();
 
             if (name != null)
                 _tw.Write("\"{0}\": ", name);
@@ -547,34 +470,13 @@ namespace SerdesNet
             Offset += length;
         }
 
-        public void Meta(string name, Action<ISerializer> serializer, Action<ISerializer> deserializer)
+        public T Object<T>(string name, T existing, Func<int, T, ISerializer, T> serdes)
         {
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
+            Comma();
 
-            if (name != null)
-                _tw.Write("\"{0}\": ", name);
-            _first = true;
-            serializer(this);
-            _first = false;
-        }
-
-        public T Meta<T>(string name, T existing, Func<int, T, ISerializer, T> serdes)
-        {
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
-
-            if (name != null)
-                _tw.Write("\"{0}\": ", name);
-
-            _first = true;
+            Begin(name);
             var result = serdes(0, existing, this);
+            End();
             _first = false;
             return result;
         }
@@ -586,26 +488,27 @@ namespace SerdesNet
             Func<int, TTarget, ISerializer, TTarget> serdes,
             Func<int, IList<TTarget>> initialiser = null)
         {
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
+            Comma();
 
             if(name != null)
                 _tw.Write("\"{0}\": ", name);
 
-            _tw.WriteLine("[");
+            if (_compact)
+                _tw.Write("[ ");
+            else
+                _tw.WriteLine("[");
+
             if (count > 0)
             {
                 _indent += 4;
                 _first = true;
                 DoIndent();
-                for (int i = 0; i < count; i++)
+                    for (int i = 0; i < count; i++)
                     serdes(i, list[i], this);
 
                 _indent -= 4;
-                _tw.WriteLine();
+                if (!_compact)
+                    _tw.WriteLine();
             }
 
             DoIndent();
@@ -622,15 +525,16 @@ namespace SerdesNet
             Func<int, TTarget, ISerializer, TTarget> serializer,
             Func<int, IList<TTarget>> initialiser = null)
         {
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
+            Comma();
 
-            if(name != null)
+            if (name != null)
                 _tw.Write("\"{0}\": ", name);
-            _tw.WriteLine("[");
+
+            if (_compact)
+                _tw.Write("[ ");
+            else
+                _tw.WriteLine("[");
+
             if (count - offset > 0)
             {
                 _indent += 4;
@@ -640,7 +544,8 @@ namespace SerdesNet
                     serializer(i, list[i], this);
 
                 _indent -= 4;
-                _tw.WriteLine();
+                if (!_compact)
+                    _tw.WriteLine();
             }
 
             DoIndent();
@@ -651,11 +556,7 @@ namespace SerdesNet
 
         public string Raw(string name, string content)
         {
-            if (!_first)
-            {
-                _tw.WriteLine(", ");
-                DoIndent();
-            }
+            Comma();
 
             if (name != null)
                 _tw.Write("\"{0}\": ", name);

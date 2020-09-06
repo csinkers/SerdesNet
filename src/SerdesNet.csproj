@@ -13,7 +13,6 @@
     <PackageTags>serialisation serialization</PackageTags>
     <RepositoryUrl>https://github.com/CSinkers/SerdesNet</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
-    <Version>1.1.4</Version>
+    <Version>1.2.0</Version>
   </PropertyGroup>
-
 </Project>

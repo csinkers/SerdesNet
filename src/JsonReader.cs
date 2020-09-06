@@ -13,16 +13,6 @@ namespace SerdesNet
             throw new NotImplementedException();
         }
 
-        public void Begin(string name)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void End()
-        {
-            throw new NotImplementedException();
-        }
-
         public void NewLine()
         {
             throw new NotImplementedException();
@@ -53,42 +43,42 @@ namespace SerdesNet
             throw new NotImplementedException();
         }
 
-        public sbyte Int8(string name, sbyte existing)
+        public sbyte Int8(string name, sbyte existing, sbyte defaultValue = 0)
         {
             throw new NotImplementedException();
         }
 
-        public short Int16(string name, short existing)
+        public short Int16(string name, short existing, short defaultValue = 0)
         {
             throw new NotImplementedException();
         }
 
-        public int Int32(string name, int existing)
+        public int Int32(string name, int existing, int defaultValue = 0)
         {
             throw new NotImplementedException();
         }
 
-        public long Int64(string name, long existing)
+        public long Int64(string name, long existing, long defaultValue = 0)
         {
             throw new NotImplementedException();
         }
 
-        public byte UInt8(string name, byte existing)
+        public byte UInt8(string name, byte existing, byte defaultValue = 0)
         {
             throw new NotImplementedException();
         }
 
-        public ushort UInt16(string name, ushort existing)
+        public ushort UInt16(string name, ushort existing, ushort defaultValue = 0)
         {
             throw new NotImplementedException();
         }
 
-        public uint UInt32(string name, uint existing)
+        public uint UInt32(string name, uint existing, uint defaultValue = 0)
         {
             throw new NotImplementedException();
         }
 
-        public ulong UInt64(string name, ulong existing)
+        public ulong UInt64(string name, ulong existing, ulong defaultValue = 0)
         {
             throw new NotImplementedException();
         }
@@ -108,7 +98,7 @@ namespace SerdesNet
             throw new NotImplementedException();
         }
 
-        public TMemory Transform<TPersistent, TMemory>(string name, TMemory existing, Func<string, TPersistent, TPersistent> serializer, IConverter<TPersistent, TMemory> converter)
+        public T Transform<TNumeric, T>(string name, T existing, Func<string, TNumeric, ISerializer, TNumeric> serializer, IConverter<TNumeric, T> converter)
         {
             throw new NotImplementedException();
         }
@@ -143,11 +133,6 @@ namespace SerdesNet
             throw new NotImplementedException();
         }
 
-        public byte[] ByteArray2(string name, byte[] existing, int length, string coment)
-        {
-            throw new NotImplementedException();
-        }
-
         public string NullTerminatedString(string name, string existing)
         {
             throw new NotImplementedException();
@@ -163,12 +148,7 @@ namespace SerdesNet
             throw new NotImplementedException();
         }
 
-        public void Meta(string name, Action<ISerializer> reader, Action<ISerializer> writer)
-        {
-            throw new NotImplementedException();
-        }
-
-        public T Meta<T>(string name, T existing, Func<int, T, ISerializer, T> serdes)
+        public T Object<T>(string name, T existing, Func<int, T, ISerializer, T> serdes)
         {
             throw new NotImplementedException();
         }
@@ -178,7 +158,7 @@ namespace SerdesNet
             throw new NotImplementedException();
         }
 
-        public IList<TTarget> List<TTarget>(string name, IList<TTarget> list, int count, int offset, Func<int, TTarget, ISerializer, TTarget> serializer, Func<int, IList<TTarget>> initialiser = null)
+        public IList<TTarget> List<TTarget>(string name, IList<TTarget> list, int count, int offset, Func<int, TTarget, ISerializer, TTarget> serdes, Func<int, IList<TTarget>> initialiser = null)
         {
             throw new NotImplementedException();
         }

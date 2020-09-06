@@ -28,16 +28,12 @@ namespace SerdesNet
         public int PopVersion() => _versionStack.Count == 0 ? 0 : _versionStack.Pop();
         public long BytesRemaining => _maxOffset - _offset;
         public void Comment(string msg) { }
-        public void Begin(string name) { }
-        public void End() { }
         public void NewLine() { }
         public long Offset
         {
             get
             {
-                Assert(_offset == _br.BaseStream.Position);
-                if(_br.BaseStream.Position > _maxOffset)
-                    _assertionFailed("Buffer overrun in binary reader");
+                Check();
                 return _offset;
             }
         }
@@ -57,45 +53,48 @@ namespace SerdesNet
             _offset = newOffset;
         }
 
-        public sbyte Int8(string name, sbyte existing) { _offset += 1L; return _br.ReadSByte(); }
-        public short Int16(string name, short existing) { _offset += 2L; return _br.ReadInt16(); }
-        public int Int32(string name, int existing) { _offset += 4L; return _br.ReadInt32(); }
-        public long Int64(string name, long existing) { _offset += 8L; return _br.ReadInt64(); }
-        public byte UInt8(string name, byte existing) { _offset += 1L; return _br.ReadByte(); }
-        public ushort UInt16(string name, ushort existing) { _offset += 2L; return _br.ReadUInt16(); }
-        public uint UInt32(string name, uint existing) { _offset += 4L; return _br.ReadUInt32(); }
-        public ulong UInt64(string name, ulong existing) { _offset += 8L; return _br.ReadUInt64(); }
+        public sbyte Int8(string name, sbyte existing, sbyte _ = 0) { _offset += 1L; return _br.ReadSByte(); }
+        public short Int16(string name, short existing, short _ = 0) { _offset += 2L; return _br.ReadInt16(); }
+        public int Int32(string name, int existing, int _ = 0) { _offset += 4L; return _br.ReadInt32(); }
+        public long Int64(string name, long existing, long _ = 0) { _offset += 8L; return _br.ReadInt64(); }
+        public byte UInt8(string name, byte existing, byte _ = 0) { _offset += 1L; return _br.ReadByte(); }
+        public ushort UInt16(string name, ushort existing, ushort _ = 0) { _offset += 2L; return _br.ReadUInt16(); }
+        public uint UInt32(string name, uint existing, uint _ = 0) { _offset += 4L; return _br.ReadUInt32(); }
+        public ulong UInt64(string name, ulong existing, ulong _ = 0) { _offset += 8L; return _br.ReadUInt64(); }
         public T EnumU8<T>(string name, T existing) where T : struct, Enum { _offset += 1L; return (T)(object)_br.ReadByte(); }
         public T EnumU16<T>(string name, T existing) where T : struct, Enum { _offset += 2L; return (T)(object)_br.ReadUInt16(); }
         public T EnumU32<T>(string name, T existing) where T : struct, Enum { _offset += 4L; return (T)(object)_br.ReadUInt32(); }
-        public Guid Guid(string name, Guid existing) { _offset += 16L; return new Guid(_br.ReadBytes(16)); }
-        public void Meta(string name, Action<ISerializer> deserializer, Action<ISerializer> serializer) => deserializer(this);
-        public T Meta<T>(string name, T existing, Func<int, T, ISerializer, T> serdes) => serdes(0, existing, this);
+
+        public Guid Guid(string name, Guid existing)
+        {
+            _offset += 16L;
+            var bytes = _br.ReadBytes(16);
+            if (bytes.Length < 16)
+                throw new EndOfStreamException();
+            return new Guid(bytes);
+        }
+
+        public T Object<T>(string name, T existing, Func<int, T, ISerializer, T> serdes) => serdes(0, existing, this);
 
         public TMemory Transform<TPersistent, TMemory>(
                 string name,
                 TMemory existing,
-                Func<string, TPersistent, TPersistent> serializer,
+                Func<string, TPersistent, ISerializer, TPersistent> serializer,
                 IConverter<TPersistent, TMemory> converter) =>
-            converter.FromNumeric(serializer(name, converter.ToNumeric(existing)));
+            converter.FromNumeric(serializer(name, converter.ToNumeric(existing), this));
 
         public T TransformEnumU8<T>(string name, T existing, IConverter<byte, T> converter) 
-            => converter.FromNumeric(UInt8(name, converter.ToNumeric(existing)));
+            => converter.FromNumeric(UInt8(name, converter.ToNumeric(existing), 0));
         public T TransformEnumU16<T>(string name, T existing, IConverter<ushort, T> converter) 
-            => converter.FromNumeric(UInt16(name, converter.ToNumeric(existing)));
+            => converter.FromNumeric(UInt16(name, converter.ToNumeric(existing), 0));
         public T TransformEnumU32<T>(string name, T existing, IConverter<uint, T> converter) 
-            => converter.FromNumeric(UInt32(name, converter.ToNumeric(existing)));
+            => converter.FromNumeric(UInt32(name, converter.ToNumeric(existing), 0));
 
         public byte[] ByteArray(string name, byte[] existing, int n)
         {
             var v = _br.ReadBytes(n);
-            _offset += v.Length;
-            return v;
-        }
-
-        public byte[] ByteArray2(string name, byte[] existing, int n, string comment)
-        {
-            var v = _br.ReadBytes(n);
+            if (v.Length < n)
+                throw new EndOfStreamException();
             _offset += v.Length;
             return v;
         }
@@ -103,6 +102,8 @@ namespace SerdesNet
         public byte[] ByteArrayHex(string name, byte[] existing, int n)
         {
             var v = _br.ReadBytes(n);
+            if (v.Length < n)
+                throw new EndOfStreamException();
             _offset += v.Length;
             return v;
         }
@@ -124,7 +125,10 @@ namespace SerdesNet
 
         public string FixedLengthString(string name, string existing, int length)
         {
-            var str = _bytesToString(_br.ReadBytes(length));
+            var bytes = _br.ReadBytes(length);
+            if (bytes.Length < length)
+                throw new EndOfStreamException();
+            var str = _bytesToString(bytes);
             _offset += length;
             Assert(_offset == _br.BaseStream.Position);
             return str.TrimEnd('\0');
@@ -133,8 +137,12 @@ namespace SerdesNet
         public void RepeatU8(string name, byte v, int length)
         {
             var bytes = _br.ReadBytes(length);
+            if (bytes.Length < length)
+                throw new EndOfStreamException();
+
             foreach (var b in bytes)
-                if (b != v) throw new InvalidOperationException("Unexpected value found in repeating byte pattern");
+                if (b != v)
+                    Assert(false, $"Unexpected value \"{b}\" found in repeating byte pattern (expected {v}");
             _offset += length;
         }
 
@@ -171,7 +179,8 @@ namespace SerdesNet
                 var x = serdes(i, default, this);
 
                 if (list.Count <= i)
-                    list.Add(x);
+                    while (list.Count <= i)
+                        list.Add(x);
                 else
                     list[i] = x;
             }

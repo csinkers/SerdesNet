@@ -8,26 +8,6 @@ namespace SerdesNet
 {
     public class AnnotatedFormatWriter : ISerializer
     {
-        static readonly string[] HexStringTable =
-        {
-            "00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "0A", "0B", "0C", "0D", "0E", "0F",
-            "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "1A", "1B", "1C", "1D", "1E", "1F",
-            "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "2A", "2B", "2C", "2D", "2E", "2F",
-            "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "3A", "3B", "3C", "3D", "3E", "3F",
-            "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "4A", "4B", "4C", "4D", "4E", "4F",
-            "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "5A", "5B", "5C", "5D", "5E", "5F",
-            "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "6A", "6B", "6C", "6D", "6E", "6F",
-            "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "7A", "7B", "7C", "7D", "7E", "7F",
-            "80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "8A", "8B", "8C", "8D", "8E", "8F",
-            "90", "91", "92", "93", "94", "95", "96", "97", "98", "99", "9A", "9B", "9C", "9D", "9E", "9F",
-            "A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "AA", "AB", "AC", "AD", "AE", "AF",
-            "B0", "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "BA", "BB", "BC", "BD", "BE", "BF",
-            "C0", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9", "CA", "CB", "CC", "CD", "CE", "CF",
-            "D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "DA", "DB", "DC", "DD", "DE", "DF",
-            "E0", "E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9", "EA", "EB", "EC", "ED", "EE", "EF",
-            "F0", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "FA", "FB", "FC", "FD", "FE", "FF"
-        };
-
         readonly Stack<int> _versionStack = new Stack<int>();
         readonly TextWriter _tw;
         int _indent;
@@ -44,8 +24,8 @@ namespace SerdesNet
         public void PushVersion(int version) => _versionStack.Push(version);
         public int PopVersion() => _versionStack.Count == 0 ? 0 : _versionStack.Pop();
         public void Comment(string msg) { DoIndent(); _tw.WriteLine("// {0}", msg); }
-        public void Begin(string name) => _indent += 4;
-        public void End() => _indent -= 4;
+        void Begin() => _indent += 4;
+        void End() => _indent -= 4;
         public void NewLine() => _tw.WriteLine();
         public long Offset { get; private set; }
         public long BytesRemaining => long.MaxValue;
@@ -56,39 +36,39 @@ namespace SerdesNet
         public TMemory Transform<TPersistent, TMemory>(
                 string name,
                 TMemory existing,
-                Func<string, TPersistent, TPersistent> serializer,
+                Func<string, TPersistent, ISerializer, TPersistent> serializer,
                 IConverter<TPersistent, TMemory> converter) =>
-            converter.FromNumeric(serializer(name, converter.ToNumeric(existing)));
+            converter.FromNumeric(serializer(name, converter.ToNumeric(existing), this));
 
         public T TransformEnumU8<T>(string name, T existing, IConverter<byte, T> converter) 
-            => converter.FromNumeric(UInt8(name, converter.ToNumeric(existing)));
-        public T TransformEnumU16<T>(string name, T existing, IConverter<ushort, T> converter) 
-            => converter.FromNumeric(UInt16(name, converter.ToNumeric(existing)));
+            => converter.FromNumeric(UInt8(name, converter.ToNumeric(existing), 0));
+        public T TransformEnumU16<T>(string name, T existing, IConverter<ushort, T> converter)
+            => converter.FromNumeric(UInt16(name, converter.ToNumeric(existing), 0));
         public T TransformEnumU32<T>(string name, T existing, IConverter<uint, T> converter) 
-            => converter.FromNumeric(UInt32(name, converter.ToNumeric(existing)));
+            => converter.FromNumeric(UInt32(name, converter.ToNumeric(existing), 0));
 
-        public sbyte Int8(string name, sbyte existing)
+        public sbyte Int8(string name, sbyte existing, sbyte _)
         {
             DoIndent();
             _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} y)", Offset, name, existing);
             Offset += 1L;
             return existing;
         }
-        public short Int16(string name, short existing)
+        public short Int16(string name, short existing, short _)
         {
             DoIndent();
             _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} s)", Offset, name, existing);
             Offset += 2L;
             return existing;
         }
-        public int Int32(string name, int existing)
+        public int Int32(string name, int existing, int _)
         {
             DoIndent();
             _tw.WriteLine("{0:X} {1} = {2} (0x{2:X})", Offset, name, existing);
             Offset += 4L;
             return existing;
         }
-        public long Int64(string name, long existing)
+        public long Int64(string name, long existing, long _)
         {
             DoIndent();
             _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} L)", Offset, name, existing);
@@ -96,28 +76,28 @@ namespace SerdesNet
             return existing;
         }
 
-        public byte UInt8(string name, byte existing)
+        public byte UInt8(string name, byte existing, byte _)
         {
             DoIndent();
             _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} uy)", Offset, name, existing);
             Offset += 1L;
             return existing;
         }
-        public ushort UInt16(string name, ushort existing)
+        public ushort UInt16(string name, ushort existing, ushort _)
         {
             DoIndent();
             _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} us)", Offset, name, existing);
             Offset += 2L;
             return existing;
         }
-        public uint UInt32(string name, uint existing)
+        public uint UInt32(string name, uint existing, uint _)
         {
             DoIndent();
             _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} u)", Offset, name, existing);
             Offset += 4L;
             return existing;
         }
-        public ulong UInt64(string name, ulong existing)
+        public ulong UInt64(string name, ulong existing, ulong _)
         {
             var v = existing;
             DoIndent();
@@ -165,28 +145,11 @@ namespace SerdesNet
             return existing;
         }
 
-        public static string ConvertToHexString(byte[] bytes)
-        {
-            var result = new StringBuilder(bytes.Length * 2);
-            foreach (var b in bytes)
-                result.Append(HexStringTable[b]);
-            return result.ToString();
-        }
-
         public byte[] ByteArray(string name, byte[] existing, int n)
         {
             var v = existing;
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = {2}", Offset, name, ConvertToHexString(v));
-            Offset += v.Length;
-            return existing;
-        }
-
-        public byte[] ByteArray2(string name, byte[] existing, int n, string comment)
-        {
-            var v = existing;
-            DoIndent();
-            _tw.WriteLine("{0:X} {1} = {2}", Offset, name, comment);
+            _tw.WriteLine("{0:X} {1} = {2}", Offset, name, Util.ConvertToHexString(v));
             Offset += v.Length;
             return existing;
         }
@@ -197,7 +160,7 @@ namespace SerdesNet
             DoIndent();
             _tw.Write("{0:X} {1} = ", Offset, name);
 
-            Begin(null);
+            Begin();
             var payloadOffset = 0;
             var sb = new StringBuilder(16);
             foreach (var b in v)
@@ -273,16 +236,7 @@ namespace SerdesNet
             Offset += length;
         }
 
-        public void Meta(string name, Action<ISerializer> serializer, Action<ISerializer> deserializer)
-        {
-            _indent += 4;
-            DoIndent();
-            _tw.WriteLine("// {0}", name);
-            serializer(this);
-            _indent -= 4;
-        }
-
-        public T Meta<T>(string name, T existing, Func<int, T, ISerializer, T> serdes)
+        public T Object<T>(string name, T existing, Func<int, T, ISerializer, T> serdes)
         {
             _indent += 4;
             DoIndent();
