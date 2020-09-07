@@ -369,9 +369,16 @@ namespace SerdesNet
             if (name != null)
                 _tw.Write("\"{0}\": ", name);
 
-            _tw.Write("\"{0}\"", Util.ConvertToHexString(existing));
-            _first = false;
-            Offset += existing.Length;
+            if (_compact)
+                _tw.Write("[ ");
+            else
+                _tw.WriteLine("[");
+
+            foreach (var b in existing)
+                UInt8(null, b, 0);
+
+            DoIndent();
+            _tw.Write(_compact ? " ]" : "]");
             return existing;
         }
 
@@ -380,21 +387,40 @@ namespace SerdesNet
             Comma();
 
             if (name != null)
-                _tw.Write("\"{0}\": \"", name);
+                _tw.Write("\"{0}\": ", name);
 
+            if (_compact)
+                _tw.Write("[ ");
+            else
+                _tw.WriteLine("[");
             _indent += 4;
+
             var payloadOffset = 0;
             var sb = new StringBuilder(16);
-            foreach (var b in existing)
+            _first = true;
+            for (int i = 0; i < n; i++)
             {
+                byte b = existing[i];
                 if (payloadOffset % 16 == 0)
                 {
-                    _tw.Write(' ');
-                    _tw.Write(sb.ToString());
-                    sb.Clear();
-                    _tw.Write("\\n");
+                    if (sb.Length > 0)
+                    {
+                        _tw.Write(' ');
+                        _tw.Write(sb.ToString());
+                        _tw.Write("\"");
+                        sb.Clear();
+                    }
+
+                    if (!_first)
+                    {
+                        if (_compact)
+                            _tw.Write(", ");
+                        else
+                            _tw.WriteLine(",");
+                    }
+
                     DoIndent();
-                    _tw.Write("{0:X4}: ", payloadOffset);
+                    _tw.Write("\"{0:X4}\": \"", payloadOffset);
                 }
                 else if (payloadOffset % 8 == 0) _tw.Write('-');
                 else if (payloadOffset % 2 == 0) _tw.Write(' ');
@@ -405,6 +431,7 @@ namespace SerdesNet
                 else sb.Append('.');
 
                 payloadOffset += 1;
+                _first = false;
             }
 
             if (sb.Length > 0)
@@ -416,8 +443,19 @@ namespace SerdesNet
             }
 
             _tw.Write("\"");
-            _first = false;
+
             _indent -= 4;
+
+            if(_compact)
+                _tw.Write(" ]");
+            else
+            {
+                _tw.WriteLine();
+                DoIndent();
+                _tw.Write("]");
+            }
+
+            _first = false;
             Offset += existing.Length;
             return existing;
         }
@@ -512,7 +550,7 @@ namespace SerdesNet
             }
 
             DoIndent();
-            _tw.Write("]");
+            _tw.Write(_compact ? " ]" : "]");
             _first = false;
             return list;
         }

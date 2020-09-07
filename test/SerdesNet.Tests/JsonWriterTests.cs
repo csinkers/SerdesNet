@@ -179,7 +179,7 @@ namespace SerdesNet.Tests
         [Fact]
         public void GuidTest()
         {
-            Assert.Equal("\"{FA6FA50D-BE6F-4736-87DF-E17280F14248}\"",
+            Assert.Equal("\"fa6fa50d-be6f-4736-87df-e17280f14248\"",
                 Write(s => s.Guid(null, Guid.Parse("{FA6FA50D-BE6F-4736-87DF-E17280F14248}"))));
         }
 
@@ -208,9 +208,9 @@ namespace SerdesNet.Tests
         [Fact]
         public void RepeatTest()
         {
-            Assert.Equal("[ 0, 0, 0, 0 ]", Write(s => s.RepeatU8(null, 0, 4)));
-            Assert.Equal("[ 1, 1, 1, 1 ]", Write(s => s.RepeatU8(null, 1, 4)));
-            Assert.Equal("[ 1 ]", Write(s => s.RepeatU8(null, 1, 1)));
+            Assert.Equal("\"[4 bytes (0x4) of 0x0]\"", Write(s => s.RepeatU8(null, 0, 4)));
+            Assert.Equal("\"[4 bytes (0x4) of 0x1]\"", Write(s => s.RepeatU8(null, 1, 4)));
+            Assert.Equal("\"[1 bytes (0x1) of 0x1]\"", Write(s => s.RepeatU8(null, 1, 1)));
         }
 
         [Fact]
@@ -219,272 +219,289 @@ namespace SerdesNet.Tests
             Assert.Equal("[ 0, 1, 2, 3 ]", 
                 Write(s => s.ByteArray(null, new byte[] { 0, 1, 2, 3 }, 4)));
 
-            Assert.Equal("0x[00010203]",
-                Write(s =>s.ByteArrayHex(null, new byte[] { 0, 1, 2, 3 }, 4)));
+            Assert.Equal(@"[
+    ""0000"": ""0001 0203                               ....""
+]", Write(s =>s.ByteArrayHex(null, new byte[] { 0, 1, 2, 3 }, 4), false, false));
+
+            Assert.Equal(@"[
+    ""0000"": ""0001 0203 0405 0607-0809 0A0B 0C0D 0E   ...............""
+]", Write(s => s.ByteArrayHex(null,
+                new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }, 15), false, false));
+
+            Assert.Equal(@"[
+    ""0000"": ""0001 0203 0405 0607-0809 0A0B 0C0D 0E0F ................""
+]", Write(s => s.ByteArrayHex(null,
+                new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 16), false, false));
+
+            Assert.Equal(@"[
+    ""0000"": ""0001 0203 0405 0607-0809 0A0B 0C0D 0E0F ................"",
+    ""0010"": ""10                                      .""
+]", Write(s => s.ByteArrayHex(null,
+                new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 }, 17), false, false));
         }
-/*
-        [Fact]
-        public void OffsetTests()
-        {
-            Write(x => Assert.Equal(SerializerMode.Writing, x.Mode));
-            Write(x => Assert.Equal(long.MaxValue, x.BytesRemaining));
-            Write(x => Assert.False(x.IsComplete()));
-
-            static void Block1(ISerializer s)
-            {
-                Assert.Equal(0, s.Offset);
-                s.Begin(); Assert.Equal(0, s.Offset);
-                s.End(); Assert.Equal(0, s.Offset);
-                s.Comment("x"); Assert.Equal(0, s.Offset);
-                s.NewLine(); Assert.Equal(0, s.Offset);
-                s.PushVersion(1); Assert.Equal(0, s.Offset);
-                Assert.Equal(1, s.PopVersion());
-                Assert.Equal(0, s.Offset);
-
-                s.UInt8(null, 0); Assert.Equal(1, s.Offset);
-                s.UInt16(null, 0x201); Assert.Equal(3, s.Offset);
-                s.UInt32(null, 0x6050403u); Assert.Equal(7, s.Offset);
-            }
-
-            static void Block2(ISerializer s)
-            {
-                s.Seek(0);
-                Assert.Equal(0, s.Offset);
-                s.UInt64(null, 0x807060504030201uL);
-                Assert.Equal(8, s.Offset);
-            }
-
-            Assert.Equal(new byte[] { 0, 1, 2, 3, 4, 5, 6, }, Write(Block1));
-            Assert.Equal(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, Write(Block2));
-            Assert.Equal(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, Write(s => { Block1(s); Block2(s); }));
-        }
-
-        [Fact]
-        public void EnumTests()
-        {
-            Assert.Equal(new byte[] { 0, 1, 2, 3, 0xff },
-                Write(s => s.List(null, new[]
+        /*
+                [Fact]
+                public void OffsetTests()
                 {
-                    ByteEnum.None,
-                    ByteEnum.Some,
-                    ByteEnum.Both,
-                    ByteEnum.Many,
-                    ByteEnum.All
-                }, 5, S.EnumU8)));
+                    Write(x => Assert.Equal(SerializerMode.Writing, x.Mode));
+                    Write(x => Assert.Equal(long.MaxValue, x.BytesRemaining));
+                    Write(x => Assert.False(x.IsComplete()));
 
-            Assert.Equal(new byte[] {  0, 0, 1, 0, 2, 0, 3, 0, 0xff, 0xff },
-                Write(s => s.List(null, new List<UShortEnum> 
+                    static void Block1(ISerializer s)
+                    {
+                        Assert.Equal(0, s.Offset);
+                        s.Begin(); Assert.Equal(0, s.Offset);
+                        s.End(); Assert.Equal(0, s.Offset);
+                        s.Comment("x"); Assert.Equal(0, s.Offset);
+                        s.NewLine(); Assert.Equal(0, s.Offset);
+                        s.PushVersion(1); Assert.Equal(0, s.Offset);
+                        Assert.Equal(1, s.PopVersion());
+                        Assert.Equal(0, s.Offset);
+
+                        s.UInt8(null, 0); Assert.Equal(1, s.Offset);
+                        s.UInt16(null, 0x201); Assert.Equal(3, s.Offset);
+                        s.UInt32(null, 0x6050403u); Assert.Equal(7, s.Offset);
+                    }
+
+                    static void Block2(ISerializer s)
+                    {
+                        s.Seek(0);
+                        Assert.Equal(0, s.Offset);
+                        s.UInt64(null, 0x807060504030201uL);
+                        Assert.Equal(8, s.Offset);
+                    }
+
+                    Assert.Equal(new byte[] { 0, 1, 2, 3, 4, 5, 6, }, Write(Block1));
+                    Assert.Equal(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, Write(Block2));
+                    Assert.Equal(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, Write(s => { Block1(s); Block2(s); }));
+                }
+
+                [Fact]
+                public void EnumTests()
                 {
-                    UShortEnum.None,
-                    UShortEnum.Some,
-                    UShortEnum.Both,
-                    UShortEnum.Many,
-                    UShortEnum.All,
-                }, 5, S.EnumU16)));
+                    Assert.Equal(new byte[] { 0, 1, 2, 3, 0xff },
+                        Write(s => s.List(null, new[]
+                        {
+                            ByteEnum.None,
+                            ByteEnum.Some,
+                            ByteEnum.Both,
+                            ByteEnum.Many,
+                            ByteEnum.All
+                        }, 5, S.EnumU8)));
 
-            Assert.Equal(new byte[]
+                    Assert.Equal(new byte[] {  0, 0, 1, 0, 2, 0, 3, 0, 0xff, 0xff },
+                        Write(s => s.List(null, new List<UShortEnum> 
+                        {
+                            UShortEnum.None,
+                            UShortEnum.Some,
+                            UShortEnum.Both,
+                            UShortEnum.Many,
+                            UShortEnum.All,
+                        }, 5, S.EnumU16)));
+
+                    Assert.Equal(new byte[]
+                        {
+                            0,0,0,0,
+                            1,0,0,0,
+                            2,0,0,0,
+                            3,0,0,0,
+                            0xff, 0xff, 0xff, 0xff,
+                        },
+                        Write(s => s.List(null, new List<UIntEnum>
+                        {
+                            UIntEnum.None, 
+                            UIntEnum.Some, 
+                            UIntEnum.Both, 
+                            UIntEnum.Many, 
+                            UIntEnum.All, 
+                        }, 5, S.EnumU32)));
+                }
+
+                [Fact]
+                public void TransformEnumTests()
                 {
-                    0,0,0,0,
-                    1,0,0,0,
-                    2,0,0,0,
-                    3,0,0,0,
-                    0xff, 0xff, 0xff, 0xff,
-                },
-                Write(s => s.List(null, new List<UIntEnum>
+                    Assert.Equal(new byte[] { 0, 1, 2, 3, 0xff },
+                        Write(s => s.List(null, new[]
+                        {
+                            (ByteEnum?)null,
+                            ByteEnum.None,
+                            ByteEnum.Some,
+                            ByteEnum.Both,
+                            ByteEnum.AlmostAll,
+                        }, 5, (i, v, s2) => s2.TransformEnumU8(null, v, ZeroToNullConverter<ByteEnum>.Instance))));
+
+                    Assert.Equal(new byte[] { 0, 1, 2, 3, 0xff },
+                        Write(s => s.List(null, new[]
+                        {
+                            ByteEnum.None,
+                            ByteEnum.Some,
+                            ByteEnum.Both,
+                            ByteEnum.Many,
+                            (ByteEnum?)null
+                        }, 5,
+                        (i, v, s2) => s2.TransformEnumU8(null, v, MaxToNullConverter<ByteEnum>.Instance))));
+
+                    Assert.Equal(new byte[] { 0, 0, 1, 0, 2, 0, 3, 0, 0xff, 0xff },
+                        Write(s => s.List(null, new[]
+                        {
+                            (UShortEnum?) null,
+                            UShortEnum.None,
+                            UShortEnum.Some,
+                            UShortEnum.Both,
+                            UShortEnum.AlmostAll,
+                        }, 5,
+                        (i, v, s2) => s2.TransformEnumU16(null, v, ZeroToNullConverter<UShortEnum>.Instance))));
+
+                    Assert.Equal(new byte[] { 0, 0, 1, 0, 2, 0, 3, 0, 0xff, 0xff },
+                        Write(s => s.List(null, new[]
+                        {
+                            UShortEnum.None,
+                            UShortEnum.Some,
+                            UShortEnum.Both,
+                            UShortEnum.Many,
+                            (UShortEnum?)null
+                        }, 5,
+                        (i, v, s2) => s2.TransformEnumU16(null, v, MaxToNullConverter<UShortEnum>.Instance)))
+                    );
+
+                    Assert.Equal(
+                        new byte[]
+                        {
+                            0, 0, 0, 0,
+                            1, 0, 0, 0,
+                            2, 0, 0, 0,
+                            3, 0, 0, 0,
+                            0xff, 0xff, 0xff, 0xff,
+                        },
+                        Write(s => s.List(null, new[]
+                        {
+                            (UIntEnum?)null,
+                            UIntEnum.None,
+                            UIntEnum.Some,
+                            UIntEnum.Both,
+                            UIntEnum.AlmostAll,
+                        }, 5,
+                        (i, v, s2) => s2.TransformEnumU32(null, v, ZeroToNullConverter<UIntEnum>.Instance))));
+
+                    Assert.Equal(
+                        new byte[]
+                        {
+                            0, 0, 0, 0,
+                            1, 0, 0, 0,
+                            2, 0, 0, 0,
+                            3, 0, 0, 0,
+                            0xff, 0xff, 0xff, 0xff,
+                        },
+                        Write(s => s.List(null, new[]
+                        {
+                            UIntEnum.None,
+                            UIntEnum.Some,
+                            UIntEnum.Both,
+                            UIntEnum.Many,
+                            (UIntEnum?)null
+                        }, 5, (i, v, s2) => s2.TransformEnumU32(null, v, MaxToNullConverter<UIntEnum>.Instance))));
+                }
+
+                [Fact]
+                public void TransformTests()
                 {
-                    UIntEnum.None, 
-                    UIntEnum.Some, 
-                    UIntEnum.Both, 
-                    UIntEnum.Many, 
-                    UIntEnum.All, 
-                }, 5, S.EnumU32)));
-        }
+                    Assert.Equal(new byte[] { 0, 1, 2, 255, 254 }, Write(s =>
+                      {
+                          s.Transform<byte, byte?>(null, null, S.UInt8, ZeroToNullConverter.Instance);
+                          s.Transform<byte, byte?>(null, 0, S.UInt8, ZeroToNullConverter.Instance);
+                          s.Transform<byte, byte?>(null, 1, S.UInt8, ZeroToNullConverter.Instance);
+                          s.Transform<byte, byte?>(null, byte.MaxValue - 1, S.UInt8, ZeroToNullConverter.Instance);
+                          s.Transform<byte, byte?>(null, byte.MaxValue - 2, S.UInt8, ZeroToNullConverter.Instance);
+                      }));
 
-        [Fact]
-        public void TransformEnumTests()
-        {
-            Assert.Equal(new byte[] { 0, 1, 2, 3, 0xff },
-                Write(s => s.List(null, new[]
+                    Assert.Equal(new byte[] { 0, 1, 2, 255, 254 }, Write(s =>
+                    {
+                        s.Transform<byte, byte?>(null, 0, S.UInt8, MaxToNullConverter.Instance);
+                        s.Transform<byte, byte?>(null, 1, S.UInt8, MaxToNullConverter.Instance);
+                        s.Transform<byte, byte?>(null, 2, S.UInt8, MaxToNullConverter.Instance);
+                        s.Transform<byte, byte?>(null, null, S.UInt8, MaxToNullConverter.Instance);
+                        s.Transform<byte, byte?>(null, byte.MaxValue - 1, S.UInt8, MaxToNullConverter.Instance);
+                    }));
+
+                    Assert.Equal(new byte[] { 0, 0, 1, 0, 2, 0, 255, 255, 254, 255 }, Write(s =>
+                    {
+                        s.Transform<ushort, ushort?>(null, null, S.UInt16, ZeroToNullConverter.Instance);
+                        s.Transform<ushort, ushort?>(null, 0, S.UInt16, ZeroToNullConverter.Instance);
+                        s.Transform<ushort, ushort?>(null, 1, S.UInt16, ZeroToNullConverter.Instance);
+                        s.Transform<ushort, ushort?>(null, ushort.MaxValue - 1, S.UInt16, ZeroToNullConverter.Instance);
+                        s.Transform<ushort, ushort?>(null, ushort.MaxValue - 2, S.UInt16, ZeroToNullConverter.Instance);
+                    }));
+
+                    Assert.Equal(new byte[] { 0, 0, 1, 0, 2, 0, 255, 255, 254, 255 }, Write(s =>
+                    {
+                        s.Transform<ushort, ushort?>(null, 0, S.UInt16, MaxToNullConverter.Instance);
+                        s.Transform<ushort, ushort?>(null, 1, S.UInt16, MaxToNullConverter.Instance);
+                        s.Transform<ushort, ushort?>(null, 2, S.UInt16, MaxToNullConverter.Instance);
+                        s.Transform<ushort, ushort?>(null, null, S.UInt16, MaxToNullConverter.Instance);
+                        s.Transform<ushort, ushort?>(null, ushort.MaxValue - 1, S.UInt16, MaxToNullConverter.Instance);
+                    }));
+
+                    Assert.Equal(new byte[]
+                        {
+                            0,0,0,0,
+                            1,0,0,0,
+                            2,0,0,0,
+                            255,255,255,255,
+                            254,255,255,255
+                        }, Write(s =>
+                        {
+                            s.Transform<uint, uint?>(null, null, S.UInt32, ZeroToNullConverter.Instance);
+                            s.Transform<uint, uint?>(null, 0, S.UInt32, ZeroToNullConverter.Instance);
+                            s.Transform<uint, uint?>(null, 1, S.UInt32, ZeroToNullConverter.Instance);
+                            s.Transform<uint, uint?>(null, uint.MaxValue - 1, S.UInt32, ZeroToNullConverter.Instance);
+                            s.Transform<uint, uint?>(null, uint.MaxValue - 2, S.UInt32, ZeroToNullConverter.Instance);
+                        }));
+
+                    Assert.Equal(new byte[]
+                        {
+                            0,0,0,0,
+                            1,0,0,0,
+                            2,0,0,0,
+                            255,255,255,255,
+                            254,255,255,255
+                        }, Write(s =>
+                        {
+                            s.Transform<uint, uint?>(null, 0, S.UInt32, MaxToNullConverter.Instance);
+                            s.Transform<uint, uint?>(null, 1, S.UInt32, MaxToNullConverter.Instance);
+                            s.Transform<uint, uint?>(null, 2, S.UInt32, MaxToNullConverter.Instance);
+                            s.Transform<uint, uint?>(null, null, S.UInt32, MaxToNullConverter.Instance);
+                            s.Transform<uint, uint?>(null, uint.MaxValue - 1, S.UInt32, MaxToNullConverter.Instance);
+                        }));
+                }
+
+                [Fact]
+                public void ObjectTests()
                 {
-                    (ByteEnum?)null,
-                    ByteEnum.None,
-                    ByteEnum.Some,
-                    ByteEnum.Both,
-                    ByteEnum.AlmostAll,
-                }, 5, (i, v, s2) => s2.TransformEnumU8(null, v, ZeroToNullConverter<ByteEnum>.Instance))));
+                    Assert.Equal(Example.ExampleBuffer,
+                        Write(s => s.Object(null, Example.TestInstance, Example.Serdes)));
+                }
 
-            Assert.Equal(new byte[] { 0, 1, 2, 3, 0xff },
-                Write(s => s.List(null, new[]
+                [Fact]
+                public void CheckTests()
                 {
-                    ByteEnum.None,
-                    ByteEnum.Some,
-                    ByteEnum.Both,
-                    ByteEnum.Many,
-                    (ByteEnum?)null
-                }, 5,
-                (i, v, s2) => s2.TransformEnumU8(null, v, MaxToNullConverter<ByteEnum>.Instance))));
+                    var ms = new MemoryStream();
+                    var bw = new BinaryWriter(ms);
+                    var s = new GenericBinaryWriter(
+                        bw,
+                        Encoding.UTF8.GetBytes,
+                        m => throw new InvalidOperationException(m));
 
-            Assert.Equal(new byte[] { 0, 0, 1, 0, 2, 0, 3, 0, 0xff, 0xff },
-                Write(s => s.List(null, new[]
-                {
-                    (UShortEnum?) null,
-                    UShortEnum.None,
-                    UShortEnum.Some,
-                    UShortEnum.Both,
-                    UShortEnum.AlmostAll,
-                }, 5,
-                (i, v, s2) => s2.TransformEnumU16(null, v, ZeroToNullConverter<UShortEnum>.Instance))));
-
-            Assert.Equal(new byte[] { 0, 0, 1, 0, 2, 0, 3, 0, 0xff, 0xff },
-                Write(s => s.List(null, new[]
-                {
-                    UShortEnum.None,
-                    UShortEnum.Some,
-                    UShortEnum.Both,
-                    UShortEnum.Many,
-                    (UShortEnum?)null
-                }, 5,
-                (i, v, s2) => s2.TransformEnumU16(null, v, MaxToNullConverter<UShortEnum>.Instance)))
-            );
-
-            Assert.Equal(
-                new byte[]
-                {
-                    0, 0, 0, 0,
-                    1, 0, 0, 0,
-                    2, 0, 0, 0,
-                    3, 0, 0, 0,
-                    0xff, 0xff, 0xff, 0xff,
-                },
-                Write(s => s.List(null, new[]
-                {
-                    (UIntEnum?)null,
-                    UIntEnum.None,
-                    UIntEnum.Some,
-                    UIntEnum.Both,
-                    UIntEnum.AlmostAll,
-                }, 5,
-                (i, v, s2) => s2.TransformEnumU32(null, v, ZeroToNullConverter<UIntEnum>.Instance))));
-
-            Assert.Equal(
-                new byte[]
-                {
-                    0, 0, 0, 0,
-                    1, 0, 0, 0,
-                    2, 0, 0, 0,
-                    3, 0, 0, 0,
-                    0xff, 0xff, 0xff, 0xff,
-                },
-                Write(s => s.List(null, new[]
-                {
-                    UIntEnum.None,
-                    UIntEnum.Some,
-                    UIntEnum.Both,
-                    UIntEnum.Many,
-                    (UIntEnum?)null
-                }, 5, (i, v, s2) => s2.TransformEnumU32(null, v, MaxToNullConverter<UIntEnum>.Instance))));
-        }
-
-        [Fact]
-        public void TransformTests()
-        {
-            Assert.Equal(new byte[] { 0, 1, 2, 255, 254 }, Write(s =>
-              {
-                  s.Transform<byte, byte?>(null, null, S.UInt8, ZeroToNullConverter.Instance);
-                  s.Transform<byte, byte?>(null, 0, S.UInt8, ZeroToNullConverter.Instance);
-                  s.Transform<byte, byte?>(null, 1, S.UInt8, ZeroToNullConverter.Instance);
-                  s.Transform<byte, byte?>(null, byte.MaxValue - 1, S.UInt8, ZeroToNullConverter.Instance);
-                  s.Transform<byte, byte?>(null, byte.MaxValue - 2, S.UInt8, ZeroToNullConverter.Instance);
-              }));
-
-            Assert.Equal(new byte[] { 0, 1, 2, 255, 254 }, Write(s =>
-            {
-                s.Transform<byte, byte?>(null, 0, S.UInt8, MaxToNullConverter.Instance);
-                s.Transform<byte, byte?>(null, 1, S.UInt8, MaxToNullConverter.Instance);
-                s.Transform<byte, byte?>(null, 2, S.UInt8, MaxToNullConverter.Instance);
-                s.Transform<byte, byte?>(null, null, S.UInt8, MaxToNullConverter.Instance);
-                s.Transform<byte, byte?>(null, byte.MaxValue - 1, S.UInt8, MaxToNullConverter.Instance);
-            }));
-
-            Assert.Equal(new byte[] { 0, 0, 1, 0, 2, 0, 255, 255, 254, 255 }, Write(s =>
-            {
-                s.Transform<ushort, ushort?>(null, null, S.UInt16, ZeroToNullConverter.Instance);
-                s.Transform<ushort, ushort?>(null, 0, S.UInt16, ZeroToNullConverter.Instance);
-                s.Transform<ushort, ushort?>(null, 1, S.UInt16, ZeroToNullConverter.Instance);
-                s.Transform<ushort, ushort?>(null, ushort.MaxValue - 1, S.UInt16, ZeroToNullConverter.Instance);
-                s.Transform<ushort, ushort?>(null, ushort.MaxValue - 2, S.UInt16, ZeroToNullConverter.Instance);
-            }));
-
-            Assert.Equal(new byte[] { 0, 0, 1, 0, 2, 0, 255, 255, 254, 255 }, Write(s =>
-            {
-                s.Transform<ushort, ushort?>(null, 0, S.UInt16, MaxToNullConverter.Instance);
-                s.Transform<ushort, ushort?>(null, 1, S.UInt16, MaxToNullConverter.Instance);
-                s.Transform<ushort, ushort?>(null, 2, S.UInt16, MaxToNullConverter.Instance);
-                s.Transform<ushort, ushort?>(null, null, S.UInt16, MaxToNullConverter.Instance);
-                s.Transform<ushort, ushort?>(null, ushort.MaxValue - 1, S.UInt16, MaxToNullConverter.Instance);
-            }));
-
-            Assert.Equal(new byte[]
-                {
-                    0,0,0,0,
-                    1,0,0,0,
-                    2,0,0,0,
-                    255,255,255,255,
-                    254,255,255,255
-                }, Write(s =>
-                {
-                    s.Transform<uint, uint?>(null, null, S.UInt32, ZeroToNullConverter.Instance);
-                    s.Transform<uint, uint?>(null, 0, S.UInt32, ZeroToNullConverter.Instance);
-                    s.Transform<uint, uint?>(null, 1, S.UInt32, ZeroToNullConverter.Instance);
-                    s.Transform<uint, uint?>(null, uint.MaxValue - 1, S.UInt32, ZeroToNullConverter.Instance);
-                    s.Transform<uint, uint?>(null, uint.MaxValue - 2, S.UInt32, ZeroToNullConverter.Instance);
-                }));
-
-            Assert.Equal(new byte[]
-                {
-                    0,0,0,0,
-                    1,0,0,0,
-                    2,0,0,0,
-                    255,255,255,255,
-                    254,255,255,255
-                }, Write(s =>
-                {
-                    s.Transform<uint, uint?>(null, 0, S.UInt32, MaxToNullConverter.Instance);
-                    s.Transform<uint, uint?>(null, 1, S.UInt32, MaxToNullConverter.Instance);
-                    s.Transform<uint, uint?>(null, 2, S.UInt32, MaxToNullConverter.Instance);
-                    s.Transform<uint, uint?>(null, null, S.UInt32, MaxToNullConverter.Instance);
-                    s.Transform<uint, uint?>(null, uint.MaxValue - 1, S.UInt32, MaxToNullConverter.Instance);
-                }));
-        }
-
-        [Fact]
-        public void ObjectTests()
-        {
-            Assert.Equal(Example.ExampleBuffer,
-                Write(s => s.Object(null, Example.TestInstance, Example.Serdes)));
-        }
-
-        [Fact]
-        public void CheckTests()
-        {
-            var ms = new MemoryStream();
-            var bw = new BinaryWriter(ms);
-            var s = new GenericBinaryWriter(
-                bw,
-                Encoding.UTF8.GetBytes,
-                m => throw new InvalidOperationException(m));
-
-            s.UInt8(null, 1);  // 0->1
-            s.Check();
-            bw.Write((byte)5); // 1->2 (stream only)
-            Assert.Throws<InvalidOperationException>(() => s.Check());
-            s.Seek(ms.Position); // 1->2 (s only)
-            s.Check();
-            s.UInt8(null, 3); // 2->3
-            s.Check();
-            s.UInt8(null, 4);
-            Assert.Equal(new byte[] { 1, 5, 3, 4 }, ms.ToArray());
-        }
-*/
+                    s.UInt8(null, 1);  // 0->1
+                    s.Check();
+                    bw.Write((byte)5); // 1->2 (stream only)
+                    Assert.Throws<InvalidOperationException>(() => s.Check());
+                    s.Seek(ms.Position); // 1->2 (s only)
+                    s.Check();
+                    s.UInt8(null, 3); // 2->3
+                    s.Check();
+                    s.UInt8(null, 4);
+                    Assert.Equal(new byte[] { 1, 5, 3, 4 }, ms.ToArray());
+                }
+        */
     }
 }
