@@ -152,6 +152,7 @@ namespace SerdesNet
         {
             throw new NotImplementedException();
         }
+        public T Object<T, TContext>(string name, T existing, TContext context, Func<int, T, TContext, ISerializer, T> serdes) => serdes(0, existing, context, this);
 
         public IList<TTarget> List<TTarget>(string name, IList<TTarget> list, int count, Func<int, TTarget, ISerializer, TTarget> serdes, Func<int, IList<TTarget>> initialiser = null)
         {
@@ -159,6 +160,18 @@ namespace SerdesNet
         }
 
         public IList<TTarget> List<TTarget>(string name, IList<TTarget> list, int count, int offset, Func<int, TTarget, ISerializer, TTarget> serdes, Func<int, IList<TTarget>> initialiser = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IList<TTarget> List<TTarget, TContext>(string name, IList<TTarget> list, TContext context, int count, Func<int, TTarget, TContext, ISerializer, TTarget> serdes,
+            Func<int, IList<TTarget>> initialiser = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IList<TTarget> List<TTarget, TContext>(string name, IList<TTarget> list, TContext context, int count, int offset, Func<int, TTarget, TContext, ISerializer, TTarget> serdes,
+            Func<int, IList<TTarget>> initialiser = null)
         {
             throw new NotImplementedException();
         }

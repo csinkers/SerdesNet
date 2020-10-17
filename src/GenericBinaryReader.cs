@@ -75,6 +75,7 @@ namespace SerdesNet
         }
 
         public T Object<T>(string name, T existing, Func<int, T, ISerializer, T> serdes) => serdes(0, existing, this);
+        public T Object<T, TContext>(string name, T existing, TContext context, Func<int, T, TContext, ISerializer, T> serdes) => serdes(0, existing, context, this);
 
         public TMemory Transform<TPersistent, TMemory>(
                 string name,
@@ -84,11 +85,11 @@ namespace SerdesNet
             converter.FromNumeric(serializer(name, converter.ToNumeric(existing), this));
 
         public T TransformEnumU8<T>(string name, T existing, IConverter<byte, T> converter) 
-            => converter.FromNumeric(UInt8(name, converter.ToNumeric(existing), 0));
+            => converter.FromNumeric(UInt8(name, converter.ToNumeric(existing)));
         public T TransformEnumU16<T>(string name, T existing, IConverter<ushort, T> converter) 
-            => converter.FromNumeric(UInt16(name, converter.ToNumeric(existing), 0));
+            => converter.FromNumeric(UInt16(name, converter.ToNumeric(existing)));
         public T TransformEnumU32<T>(string name, T existing, IConverter<uint, T> converter) 
-            => converter.FromNumeric(UInt32(name, converter.ToNumeric(existing), 0));
+            => converter.FromNumeric(UInt32(name, converter.ToNumeric(existing)));
 
         public byte[] ByteArray(string name, byte[] existing, int n)
         {
@@ -147,23 +148,16 @@ namespace SerdesNet
         }
 
         public IList<TTarget> List<TTarget>(
-            string name,
-            IList<TTarget> list,
-            int count,
-            Func<int, TTarget, ISerializer, TTarget> serdes,
+            string name, IList<TTarget> list, int count,
+            Func<int, TTarget, ISerializer, TTarget> serializer,
             Func<int, IList<TTarget>> initialiser = null)
-        {
-            list = list ?? initialiser?.Invoke(count) ?? new List<TTarget>();
-            for (int i = 0; i < count; i++)
-            {
-                var x = serdes(i, default, this);
-                if (list.Count <= i)
-                    list.Add(x);
-                else
-                    list[i] = x;
-            }
-            return list;
-        }
+            => List(name, list, count, 0, serializer, initialiser);
+
+        public IList<TTarget> List<TTarget, TContext>(
+            string name, IList<TTarget> list, TContext context, int count,
+            Func<int, TTarget, TContext, ISerializer, TTarget> serializer,
+            Func<int, IList<TTarget>> initialiser = null)
+            => List(name, list, context, count, 0, serializer, initialiser);
 
         public IList<TTarget> List<TTarget>(
             string name,
@@ -177,6 +171,29 @@ namespace SerdesNet
             for (int i = offset; i < offset + count; i++)
             {
                 var x = serdes(i, default, this);
+
+                if (list.Count <= i)
+                    while (list.Count <= i)
+                        list.Add(x);
+                else
+                    list[i] = x;
+            }
+            return list;
+        }
+
+        public IList<TTarget> List<TTarget, TContext>(
+            string name,
+            IList<TTarget> list,
+            TContext context,
+            int count,
+            int offset,
+            Func<int, TTarget, TContext, ISerializer, TTarget> serdes,
+            Func<int, IList<TTarget>> initialiser = null)
+        {
+            list = list ?? initialiser?.Invoke(count) ?? new List<TTarget>();
+            for (int i = offset; i < offset + count; i++)
+            {
+                var x = serdes(i, default, context, this);
 
                 if (list.Count <= i)
                     while (list.Count <= i)

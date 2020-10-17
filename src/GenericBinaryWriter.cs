@@ -30,6 +30,7 @@ namespace SerdesNet
         public void Check() => Assert(_offset == _bw.BaseStream.Position);
         public bool IsComplete() => false;
         public T Object<T>(string name, T existing, Func<int, T, ISerializer, T> serdes) => serdes(0, existing, this);
+        public T Object<T, TContext>(string name, T existing, TContext context, Func<int, T, TContext, ISerializer, T> serdes) => serdes(0, existing, context, this);
 
         public TMemory Transform<TPersistent, TMemory>(
                 string name,
@@ -140,17 +141,16 @@ namespace SerdesNet
         }
 
         public IList<TTarget> List<TTarget>(
-            string name,
-            IList<TTarget> list,
-            int count,
+            string name, IList<TTarget> list, int count,
             Func<int, TTarget, ISerializer, TTarget> serializer,
             Func<int, IList<TTarget>> initialiser = null)
-        {
-            list = list ?? initialiser?.Invoke(count) ?? new TTarget[count];
-            for (int i = 0; i < count; i++)
-                serializer(i, list[i], this);
-            return list;
-        }
+            => List(name, list, count, 0, serializer, initialiser);
+
+        public IList<TTarget> List<TTarget, TContext>(
+            string name, IList<TTarget> list, TContext context, int count,
+            Func<int, TTarget, TContext, ISerializer, TTarget> serializer,
+            Func<int, IList<TTarget>> initialiser = null)
+            => List(name, list, context, count, 0, serializer, initialiser);
 
         public IList<TTarget> List<TTarget>(
             string name,
@@ -163,6 +163,21 @@ namespace SerdesNet
             list = list ?? initialiser?.Invoke(count) ?? new TTarget[count];
             for (int i = offset; i < count + offset; i++)
                 serializer(i, list[i], this);
+            return list;
+        }
+
+        public IList<TTarget> List<TTarget, TContext>(
+            string name,
+            IList<TTarget> list,
+            TContext context,
+            int count,
+            int offset,
+            Func<int, TTarget, TContext, ISerializer, TTarget> serializer,
+            Func<int, IList<TTarget>> initialiser = null)
+        {
+            list = list ?? initialiser?.Invoke(count) ?? new TTarget[count];
+            for (int i = offset; i < count + offset; i++)
+                serializer(i, list[i], context, this);
             return list;
         }
 

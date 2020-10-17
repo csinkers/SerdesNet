@@ -48,6 +48,7 @@ namespace SerdesNet
         string FixedLengthString(string name, string existing, int length);
         void RepeatU8(string name, byte value, int count); // Either writes a block of padding or verifies the consistency of one while reading
         T Object<T>(string name, T existing, Func<int, T, ISerializer, T> serdes);
+        T Object<T, TContext>(string name, T existing, TContext context, Func<int, T, TContext, ISerializer, T> serdes);
         IList<TTarget> List<TTarget>(
             string name,
             IList<TTarget> list,
@@ -63,6 +64,22 @@ namespace SerdesNet
             Func<int, TTarget, ISerializer, TTarget> serdes,
             Func<int, IList<TTarget>> initialiser = null);
 
+        IList<TTarget> List<TTarget, TContext>(
+            string name,
+            IList<TTarget> list,
+            TContext context,
+            int count,
+            Func<int, TTarget, TContext, ISerializer, TTarget> serdes,
+            Func<int, IList<TTarget>> initialiser = null);
+
+        IList<TTarget> List<TTarget, TContext>(
+            string name,
+            IList<TTarget> list,
+            TContext context,
+            int count,
+            int offset,
+            Func<int, TTarget, TContext, ISerializer, TTarget> serdes,
+            Func<int, IList<TTarget>> initialiser = null);
     }
 
     public static class S

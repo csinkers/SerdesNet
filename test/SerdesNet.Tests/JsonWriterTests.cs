@@ -195,7 +195,7 @@ namespace SerdesNet.Tests
                         UInt8Serdes,
                         x => throw new InvalidOperationException())));
 
-            Assert.Equal("[ 1, 2, 3]",
+            Assert.Equal("[ 1, 2, 3 ]",
                 Write(s => s.List(
                         null,
                         new byte[] { 0, 1, 2, 3 },

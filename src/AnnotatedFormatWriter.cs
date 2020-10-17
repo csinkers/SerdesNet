@@ -246,31 +246,27 @@ namespace SerdesNet
             return result;
         }
 
+        public T Object<T, TContext>(string name, T existing, TContext context, Func<int, T, TContext, ISerializer, T> serdes)
+        {
+            _indent += 4;
+            DoIndent();
+            _tw.WriteLine("// {0}", name);
+            var result = serdes(0, existing, context, this);
+            _indent -= 4;
+            return result;
+        }
+
         public IList<TTarget> List<TTarget>(
-            string name,
-            IList<TTarget> list,
-            int count,
+            string name, IList<TTarget> list, int count,
             Func<int, TTarget, ISerializer, TTarget> serializer,
             Func<int, IList<TTarget>> initialiser = null)
-        {
-            list = list ?? initialiser?.Invoke(count) ?? new List<TTarget>();
-            _indent += 4;
-            DoIndent();
-            _tw.WriteLine("[ // {0}", name);
-            _indent += 4;
-            for (int i = 0; i < count; i++)
-            {
-                DoIndent();
-                _tw.WriteLine("// {0}", i);
-                serializer(i, list[i], this);
-            }
+            => List(name, list, count, 0, serializer, initialiser);
 
-            _indent -= 4;
-            DoIndent();
-            _tw.WriteLine(" ]");
-            _indent -= 4;
-            return list;
-        }
+        public IList<TTarget> List<TTarget, TContext>(
+            string name, IList<TTarget> list, TContext context, int count,
+            Func<int, TTarget, TContext, ISerializer, TTarget> serializer,
+            Func<int, IList<TTarget>> initialiser = null)
+            => List(name, list, context, count, 0, serializer, initialiser);
 
         public IList<TTarget> List<TTarget>(
             string name,
@@ -286,6 +282,26 @@ namespace SerdesNet
             _tw.WriteLine("[ // {0}", name);
             for (int i = offset; i < offset + count; i++)
                 serializer(i, list[i], this);
+            _tw.WriteLine(" ]");
+            _indent -= 4;
+            return list;
+        }
+
+        public IList<TTarget> List<TTarget, TContext>(
+            string name,
+            IList<TTarget> list,
+            TContext context,
+            int count,
+            int offset,
+            Func<int, TTarget, TContext, ISerializer, TTarget> serializer,
+            Func<int, IList<TTarget>> initialiser = null)
+        {
+            list = list ?? initialiser?.Invoke(count) ?? new List<TTarget>();
+            _indent += 4;
+            DoIndent();
+            _tw.WriteLine("[ // {0}", name);
+            for (int i = offset; i < offset + count; i++)
+                serializer(i, list[i], context, this);
             _tw.WriteLine(" ]");
             _indent -= 4;
             return list;

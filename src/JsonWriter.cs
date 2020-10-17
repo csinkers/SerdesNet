@@ -519,41 +519,28 @@ namespace SerdesNet
             return result;
         }
 
-        public IList<TTarget> List<TTarget>(
-            string name,
-            IList<TTarget> list,
-            int count,
-            Func<int, TTarget, ISerializer, TTarget> serdes,
-            Func<int, IList<TTarget>> initialiser = null)
+        public T Object<T, TContext>(string name, T existing, TContext context, Func<int, T, TContext, ISerializer, T> serdes)
         {
             Comma();
 
-            if(name != null)
-                _tw.Write("\"{0}\": ", name);
-
-            if (_compact)
-                _tw.Write("[ ");
-            else
-                _tw.WriteLine("[");
-
-            if (count > 0)
-            {
-                _indent += 4;
-                _first = true;
-                DoIndent();
-                    for (int i = 0; i < count; i++)
-                    serdes(i, list[i], this);
-
-                _indent -= 4;
-                if (!_compact)
-                    _tw.WriteLine();
-            }
-
-            DoIndent();
-            _tw.Write(_compact ? " ]" : "]");
+            Begin(name);
+            var result = serdes(0, existing, context, this);
+            End();
             _first = false;
-            return list;
+            return result;
         }
+
+        public IList<TTarget> List<TTarget>(
+            string name, IList<TTarget> list, int count,
+            Func<int, TTarget, ISerializer, TTarget> serializer,
+            Func<int, IList<TTarget>> initialiser = null)
+            => List(name, list, count, 0, serializer, initialiser);
+
+        public IList<TTarget> List<TTarget, TContext>(
+            string name, IList<TTarget> list, TContext context, int count,
+            Func<int, TTarget, TContext, ISerializer, TTarget> serializer,
+            Func<int, IList<TTarget>> initialiser = null)
+            => List(name, list, context, count, 0, serializer, initialiser);
 
         public IList<TTarget> List<TTarget>(
             string name,
@@ -587,7 +574,43 @@ namespace SerdesNet
             }
 
             DoIndent();
-            _tw.Write("]");
+            _tw.Write(_compact ? " ]" : "]");
+            _first = false;
+            return list;
+        }
+
+        public IList<TTarget> List<TTarget, TContext>(
+            string name,
+            IList<TTarget> list, TContext context,
+            int count, int offset,
+            Func<int, TTarget, TContext, ISerializer, TTarget> serializer,
+            Func<int, IList<TTarget>> initialiser = null)
+        {
+            Comma();
+
+            if (name != null)
+                _tw.Write("\"{0}\": ", name);
+
+            if (_compact)
+                _tw.Write("[ ");
+            else
+                _tw.WriteLine("[");
+
+            if (count - offset > 0)
+            {
+                _indent += 4;
+                _first = true;
+                DoIndent();
+                for (int i = offset; i < offset + count; i++)
+                    serializer(i, list[i], context, this);
+
+                _indent -= 4;
+                if (!_compact)
+                    _tw.WriteLine();
+            }
+
+            DoIndent();
+            _tw.Write(_compact ? " ]" : "]");
             _first = false;
             return list;
         }
