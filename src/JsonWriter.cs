@@ -8,12 +8,12 @@ namespace SerdesNet
 {
     public class JsonWriter : ISerializer
     {
-        readonly Stack<int> _versionStack = new Stack<int>();
         readonly TextWriter _tw;
         readonly Encoding _binaryStringEncoding;
         readonly bool _elideDefaults;
         readonly bool _compact;
         readonly Action<string> _assertionFailed;
+        Stack<int> _versionStack;
         int _indent;
         bool _first = true;
 
@@ -48,8 +48,8 @@ namespace SerdesNet
         }
 
         public SerializerMode Mode => SerializerMode.WritingJson;
-        public void PushVersion(int version) => _versionStack.Push(version);
-        public int PopVersion() => _versionStack.Count == 0 ? 0 : _versionStack.Pop();
+        public void PushVersion(int version) => (_versionStack = _versionStack ?? new Stack<int>()).Push(version);
+        public int PopVersion() => _versionStack == null || _versionStack.Count == 0 ? 0 : _versionStack.Pop();
 
         public void Comment(string msg)
         {
@@ -626,5 +626,8 @@ namespace SerdesNet
             _first = false;
             return content;
         }
+
+        protected virtual void Dispose(bool disposing) { }
+        public void Dispose() => Dispose(true);
     }
 }

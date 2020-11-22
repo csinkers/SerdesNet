@@ -4,7 +4,7 @@ using System.Globalization;
 
 namespace SerdesNet
 {
-    public interface ISerializer
+    public interface ISerializer : IDisposable
     {
         SerializerMode Mode { get; }
         long Offset { get; } // For recording offsets to be overwritten later

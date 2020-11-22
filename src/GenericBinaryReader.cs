@@ -9,8 +9,8 @@ namespace SerdesNet
     {
         readonly Action<string> _assertionFailed;
         readonly Func<byte[], string> _bytesToString;
-        readonly Stack<int> _versionStack = new Stack<int>();
         readonly BinaryReader _br;
+        Stack<int> _versionStack;
         readonly long _maxOffset;
         long _offset;
 
@@ -24,8 +24,8 @@ namespace SerdesNet
         }
 
         public SerializerMode Mode => SerializerMode.Reading;
-        public void PushVersion(int version) => _versionStack.Push(version);
-        public int PopVersion() => _versionStack.Count == 0 ? 0 : _versionStack.Pop();
+        public void PushVersion(int version) => (_versionStack = _versionStack ?? new Stack<int>()).Push(version);
+        public int PopVersion() => _versionStack == null || _versionStack.Count == 0 ? 0 : _versionStack.Pop();
         public long BytesRemaining => _maxOffset - _offset;
         public void Comment(string msg) { }
         public void NewLine() { }
@@ -212,5 +212,8 @@ namespace SerdesNet
             var formatted = $"Assertion failed: {message} at {function} in {file}:{line}";
             _assertionFailed?.Invoke(formatted);
         }
+
+        protected virtual void Dispose(bool disposing) { }
+        public void Dispose() => Dispose(true);
     }
 }

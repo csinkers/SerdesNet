@@ -8,8 +8,8 @@ namespace SerdesNet
 {
     public class AnnotatedFormatWriter : ISerializer
     {
-        readonly Stack<int> _versionStack = new Stack<int>();
         readonly TextWriter _tw;
+        Stack<int> _versionStack;
         int _indent;
 
         public AnnotatedFormatWriter(TextWriter textWriter, AnnotatedFormatWriter existing = null)
@@ -21,8 +21,8 @@ namespace SerdesNet
 
         void DoIndent() => _tw.Write(new string(' ', _indent));
         public SerializerMode Mode => SerializerMode.WritingAnnotated;
-        public void PushVersion(int version) => _versionStack.Push(version);
-        public int PopVersion() => _versionStack.Count == 0 ? 0 : _versionStack.Pop();
+        public void PushVersion(int version) => (_versionStack = _versionStack ?? new Stack<int>()).Push(version);
+        public int PopVersion() => _versionStack == null || _versionStack.Count == 0 ? 0 : _versionStack.Pop();
         public void Comment(string msg) { DoIndent(); _tw.WriteLine("// {0}", msg); }
         void Begin() => _indent += 4;
         void End() => _indent -= 4;
@@ -306,5 +306,8 @@ namespace SerdesNet
             _indent -= 4;
             return list;
         }
+
+        protected virtual void Dispose(bool disposing) { }
+        public void Dispose() => Dispose(true);
     }
 }
