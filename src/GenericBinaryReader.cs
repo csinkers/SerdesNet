@@ -10,7 +10,6 @@ namespace SerdesNet
         readonly Action<string> _assertionFailed;
         readonly Func<byte[], string> _bytesToString;
         readonly BinaryReader _br;
-        Stack<int> _versionStack;
         readonly long _maxOffset;
         long _offset;
 
@@ -23,26 +22,18 @@ namespace SerdesNet
             _maxOffset = _offset + maxLength;
         }
 
-        public SerializerMode Mode => SerializerMode.Reading;
-        public void PushVersion(int version) => (_versionStack = _versionStack ?? new Stack<int>()).Push(version);
-        public int PopVersion() => _versionStack == null || _versionStack.Count == 0 ? 0 : _versionStack.Pop();
+        public SerializerFlags Flags => SerializerFlags.Read;
         public long BytesRemaining => _maxOffset - _offset;
         public void Comment(string msg) { }
+        public void Begin(string name = null) { }
+        public void End() { }
         public void NewLine() { }
-        public long Offset
-        {
-            get
-            {
-                Check();
-                return _offset;
-            }
-        }
+        public long Offset { get { Check(); return _offset; } }
 
         public void Check()
         {
             Assert(_offset == _br.BaseStream.Position);
-            if (_br.BaseStream.Position > _maxOffset)
-                _assertionFailed("Buffer overrun in binary reader");
+            Assert(_maxOffset >=  _br.BaseStream.Position, "Buffer overrun in binary reader");
         }
 
         public bool IsComplete() => _br.BaseStream.Position >= _maxOffset;
@@ -53,6 +44,7 @@ namespace SerdesNet
             _offset = newOffset;
         }
 
+        public void Pad(int bytes) => RepeatU8(null, 0, bytes);
         public sbyte Int8(string name, sbyte existing, sbyte _ = 0) { _offset += 1L; return _br.ReadSByte(); }
         public short Int16(string name, short existing, short _ = 0) { _offset += 2L; return _br.ReadInt16(); }
         public int Int32(string name, int existing, int _ = 0) { _offset += 4L; return _br.ReadInt32(); }
@@ -76,6 +68,7 @@ namespace SerdesNet
 
         public T Object<T>(string name, T existing, Func<int, T, ISerializer, T> serdes) => serdes(0, existing, this);
         public T Object<T, TContext>(string name, T existing, TContext context, Func<int, T, TContext, ISerializer, T> serdes) => serdes(0, existing, context, this);
+        public void Object(string name, Action<ISerializer> serdes) => serdes(this);
 
         public TMemory Transform<TPersistent, TMemory>(
                 string name,
@@ -92,15 +85,6 @@ namespace SerdesNet
             => converter.FromNumeric(UInt32(name, converter.ToNumeric(existing)));
 
         public byte[] ByteArray(string name, byte[] existing, int n)
-        {
-            var v = _br.ReadBytes(n);
-            if (v.Length < n)
-                throw new EndOfStreamException();
-            _offset += v.Length;
-            return v;
-        }
-
-        public byte[] ByteArrayHex(string name, byte[] existing, int n)
         {
             var v = _br.ReadBytes(n);
             if (v.Length < n)
@@ -204,9 +188,10 @@ namespace SerdesNet
             return list;
         }
 
-        void Assert(bool result, string message = null, [CallerMemberName] string function = "", [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
+        void ISerializer.Assert(bool condition, string message) => Assert(condition, message);
+        void Assert(bool condition, string message = null, [CallerMemberName] string function = "", [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
         {
-            if (result)
+            if (condition)
                 return;
 
             var formatted = $"Assertion failed: {message} at {function} in {file}:{line}";

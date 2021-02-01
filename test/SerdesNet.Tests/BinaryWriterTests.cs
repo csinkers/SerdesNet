@@ -10,13 +10,14 @@ namespace SerdesNet.Tests
     {
         static byte[] Write(Action<ISerializer> action, Action<string> assertHandler = null)
         {
-            var ms = new MemoryStream();
-            var bw = new BinaryWriter(ms);
-            var s = new GenericBinaryWriter(
+            using var ms = new MemoryStream();
+            using var bw = new BinaryWriter(ms);
+            using var s = new GenericBinaryWriter(
                 bw,
                 Encoding.UTF8.GetBytes,
                 assertHandler ?? (m => throw new InvalidOperationException(m)));
             action(s);
+            bw.Flush();
             return ms.ToArray();
         }
 
@@ -164,15 +165,12 @@ namespace SerdesNet.Tests
         {
             Assert.Equal(new byte[] { 0, 1, 2, 3 },
                 Write(s => s.ByteArray("", new byte[] { 0, 1, 2, 3 }, 4)));
-
-            Assert.Equal(new byte[] { 0, 1, 2, 3 }, 
-                Write(s =>s.ByteArrayHex("", new byte[] { 0, 1, 2, 3 }, 4)));
         }
 
         [Fact]
         public void OffsetTests()
         {
-            Write(x => Assert.Equal(SerializerMode.Writing, x.Mode));
+            Write(x => Assert.Equal(SerializerFlags.Write, x.Flags));
             Write(x => Assert.Equal(long.MaxValue, x.BytesRemaining));
             Write(x => Assert.False(x.IsComplete()));
 
@@ -181,9 +179,6 @@ namespace SerdesNet.Tests
                 Assert.Equal(0, s.Offset);
                 s.Comment("x"); Assert.Equal(0, s.Offset);
                 s.NewLine(); Assert.Equal(0, s.Offset);
-                s.PushVersion(1); Assert.Equal(0, s.Offset);
-                Assert.Equal(1, s.PopVersion());
-                Assert.Equal(0, s.Offset);
 
                 s.UInt8("", 0); Assert.Equal(1, s.Offset);
                 s.UInt16("", 0x201); Assert.Equal(3, s.Offset);

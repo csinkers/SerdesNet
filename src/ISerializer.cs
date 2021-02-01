@@ -6,19 +6,19 @@ namespace SerdesNet
 {
     public interface ISerializer : IDisposable
     {
-        SerializerMode Mode { get; }
+        SerializerFlags Flags { get; }
         long Offset { get; } // For recording offsets to be overwritten later
         long BytesRemaining { get; }
         void Comment(string comment); // Only affects annotating writers
-        // void Begin(string name = null); // Only affects annotating writers
-        // void End(); // Only affects annotating writers
+        void Begin(string name = null); // Only affects annotating writers
+        void End(); // Only affects annotating writers
         void NewLine(); // Only affects annotating writers
         void Seek(long offset); // For overwriting pre-recorded offsets
         void Check(); // Ensure offset matches stream position
+        void Assert(bool condition, string message);
         bool IsComplete(); // Ensure offset matches stream position
-        void PushVersion(int version);
-        int PopVersion();
 
+        void Pad(int bytes); // a given number of bytes of 0 padding
         sbyte Int8(string name, sbyte existing, sbyte defaultValue = 0);
         short Int16(string name, short existing, short defaultValue = 0);
         int Int32(string name, int existing, int defaultValue = 0);
@@ -43,12 +43,12 @@ namespace SerdesNet
 
         Guid Guid(string name, Guid existing);
         byte[] ByteArray(string name, byte[] existing, int length);
-        byte[] ByteArrayHex(string name, byte[] existing, int length);
         string NullTerminatedString(string name, string existing);
         string FixedLengthString(string name, string existing, int length);
         void RepeatU8(string name, byte value, int count); // Either writes a block of padding or verifies the consistency of one while reading
         T Object<T>(string name, T existing, Func<int, T, ISerializer, T> serdes);
         T Object<T, TContext>(string name, T existing, TContext context, Func<int, T, TContext, ISerializer, T> serdes);
+        void Object(string name, Action<ISerializer> serdes);
         IList<TTarget> List<TTarget>(
             string name,
             IList<TTarget> list,
@@ -80,6 +80,7 @@ namespace SerdesNet
             int offset,
             Func<int, TTarget, TContext, ISerializer, TTarget> serdes,
             Func<int, IList<TTarget>> initialiser = null);
+
     }
 
     public static class S
@@ -110,13 +111,9 @@ namespace SerdesNet
 
     public static class SerializerExtensions
     {
-        public static int PeekVersion(this ISerializer s)
-        {
-            var version = s.PopVersion();
-            s.PushVersion(version);
-            return version;
-        }
-
+        public static bool IsReading(this ISerializer s) => (s.Flags & SerializerFlags.Read) != 0;
+        public static bool IsWriting(this ISerializer s) => (s.Flags & SerializerFlags.Write) != 0;
+        public static bool IsCommenting(this ISerializer s) => (s.Flags & SerializerFlags.Comments) != 0;
         static short SwapBytes16(short x) { unchecked { return (short) SwapBytes16((ushort) x); } }
         static ushort SwapBytes16(ushort x)
         {

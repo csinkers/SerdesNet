@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace SerdesNet
@@ -11,7 +11,6 @@ namespace SerdesNet
         readonly Action<string> _assertionFailed;
         readonly Func<string, byte[]> _stringToBytes;
         readonly BinaryWriter _bw;
-        Stack<int> _versionStack;
         long _offset;
 
         public GenericBinaryWriter(BinaryWriter bw, Func<string, byte[]> stringToBytes, Action<string> assertionFailed = null)
@@ -21,16 +20,17 @@ namespace SerdesNet
             _assertionFailed = assertionFailed;
         }
 
-        public SerializerMode Mode => SerializerMode.Writing;
-        public void PushVersion(int version) => (_versionStack = _versionStack ?? new Stack<int>()).Push(version);
-        public int PopVersion() => _versionStack == null || _versionStack.Count == 0 ? 0 : _versionStack.Pop();
+        public SerializerFlags Flags => SerializerFlags.Write;
         public long BytesRemaining => long.MaxValue;
         public void Comment(string msg) { }
+        public void Begin(string name = null) { }
+        public void End() { }
         public void NewLine() { }
         public void Check() => Assert(_offset == _bw.BaseStream.Position);
         public bool IsComplete() => false;
         public T Object<T>(string name, T existing, Func<int, T, ISerializer, T> serdes) => serdes(0, existing, this);
         public T Object<T, TContext>(string name, T existing, TContext context, Func<int, T, TContext, ISerializer, T> serdes) => serdes(0, existing, context, this);
+        public void Object(string name, Action<ISerializer> serdes) => serdes(this);
 
         public TMemory Transform<TPersistent, TMemory>(
                 string name,
@@ -39,12 +39,12 @@ namespace SerdesNet
                 IConverter<TPersistent, TMemory> converter) =>
             converter.FromNumeric(serializer(name, converter.ToNumeric(existing), this));
 
-        public T TransformEnumU8<T>(string name, T existing, IConverter<byte, T> converter) 
-            => converter.FromNumeric(UInt8(name, converter.ToNumeric(existing), 0));
-        public T TransformEnumU16<T>(string name, T existing, IConverter<ushort, T> converter) 
-            => converter.FromNumeric(UInt16(name, converter.ToNumeric(existing), 0));
-        public T TransformEnumU32<T>(string name, T existing, IConverter<uint, T> converter) 
-            => converter.FromNumeric(UInt32(name, converter.ToNumeric(existing), 0));
+        public T TransformEnumU8<T>(string name, T existing, IConverter<byte, T> converter)
+            => converter.FromNumeric(UInt8(name, converter.ToNumeric(existing)));
+        public T TransformEnumU16<T>(string name, T existing, IConverter<ushort, T> converter)
+            => converter.FromNumeric(UInt16(name, converter.ToNumeric(existing)));
+        public T TransformEnumU32<T>(string name, T existing, IConverter<uint, T> converter)
+            => converter.FromNumeric(UInt32(name, converter.ToNumeric(existing)));
 
         public long Offset
         {
@@ -61,18 +61,20 @@ namespace SerdesNet
             _offset = newOffset;
         }
 
-        public sbyte Int8(string name, sbyte existing, sbyte _ = 0) { _bw.Write(existing); _offset += 1L; return existing; }
-        public short Int16(string name, short existing, short _ = 0) { _bw.Write(existing); _offset += 2L; return existing; }
-        public int Int32(string name, int existing, int _ = 0) { _bw.Write(existing); _offset += 4L; return existing; }
-        public long Int64(string name, long existing, long _ = 0) { _bw.Write(existing); _offset += 8L; return existing; }
-        public byte UInt8(string name, byte existing, byte _ = 0) { _bw.Write(existing); _offset += 1L; return existing; }
-        public ushort UInt16(string name, ushort existing, ushort _ = 0) { _bw.Write(existing); _offset += 2L; return existing; }
-        public uint UInt32(string name, uint existing, uint _ = 0) { _bw.Write(existing); _offset += 4L; return existing; }
-        public ulong UInt64(string name, ulong existing, ulong _ = 0) { _bw.Write(existing); _offset += 8L; return existing; }
+        public void Pad(int bytes) => RepeatU8(null, 0, bytes);
+        public sbyte Int8(string name, sbyte existing, sbyte _ = 0) { _bw.Write(existing); _offset += 1L; DebugCheck(); return existing; }
+        public short Int16(string name, short existing, short _ = 0) { _bw.Write(existing); _offset += 2L; DebugCheck(); return existing; }
+        public int Int32(string name, int existing, int _ = 0) { _bw.Write(existing); _offset += 4L; DebugCheck(); return existing; }
+        public long Int64(string name, long existing, long _ = 0) { _bw.Write(existing); _offset += 8L; DebugCheck(); return existing; }
+        public byte UInt8(string name, byte existing, byte _ = 0) { _bw.Write(existing); _offset += 1L; DebugCheck(); return existing; }
+        public ushort UInt16(string name, ushort existing, ushort _ = 0) { _bw.Write(existing); _offset += 2L; DebugCheck(); return existing; }
+        public uint UInt32(string name, uint existing, uint _ = 0) { _bw.Write(existing); _offset += 4L; DebugCheck(); return existing; }
+        public ulong UInt64(string name, ulong existing, ulong _ = 0) { _bw.Write(existing); _offset += 8L; DebugCheck(); return existing; }
         public T EnumU8<T>(string name, T existing) where T : struct, Enum
         {
             _bw.Write((byte)(object)existing);
             _offset += 1L;
+            DebugCheck();
             return existing;
         }
 
@@ -80,6 +82,7 @@ namespace SerdesNet
         {
             _bw.Write((ushort)(object)existing);
             _offset += 2L;
+            DebugCheck();
             return existing;
         }
 
@@ -87,6 +90,7 @@ namespace SerdesNet
         {
             _bw.Write((uint)(object)existing);
             _offset += 4L;
+            DebugCheck();
             return existing;
         }
 
@@ -95,6 +99,7 @@ namespace SerdesNet
             var v = existing;
             _bw.Write(v.ToByteArray());
             _offset += 16L;
+            DebugCheck();
             return existing;
         }
 
@@ -103,14 +108,7 @@ namespace SerdesNet
             var v = existing;
             _bw.Write(v);
             _offset += v.Length;
-            return existing;
-        }
-
-        public byte[] ByteArrayHex(string name, byte[] existing, int n)
-        {
-            var v = existing;
-            _bw.Write(v);
-            _offset += v.Length;
+            DebugCheck();
             return existing;
         }
 
@@ -121,23 +119,28 @@ namespace SerdesNet
             _bw.Write(bytes);
             _bw.Write((byte)0);
             _offset += bytes.Length + 1; // add 2 bytes for the null terminator
+            DebugCheck();
             return existing;
         }
 
         public string FixedLengthString(string name, string existing, int length)
         {
             var bytes = _stringToBytes(existing ?? "");
-            if (bytes.Length > length + 1) _assertionFailed("Tried to write overlength string");
+            if (bytes.Length > length + 1) _assertionFailed("Tried to write over-length string");
             _bw.Write(bytes);
-            _bw.Write(Enumerable.Repeat((byte)0, length - bytes.Length).ToArray());
+            for(int i = bytes.Length; i < length; i++)
+                _bw.Write((byte)0);
             _offset += length; // Pad out to the full length
+            DebugCheck();
             return existing;
         }
 
         public void RepeatU8(string name, byte v, int length)
         {
-            _bw.Write(Enumerable.Repeat(v, length).ToArray());
+            for (int i = 0; i < length; i++)
+                _bw.Write(v);
             _offset += length;
+            DebugCheck();
         }
 
         public IList<TTarget> List<TTarget>(
@@ -163,6 +166,7 @@ namespace SerdesNet
             list = list ?? initialiser?.Invoke(count) ?? new TTarget[count];
             for (int i = offset; i < count + offset; i++)
                 serializer(i, list[i], this);
+            DebugCheck();
             return list;
         }
 
@@ -178,12 +182,14 @@ namespace SerdesNet
             list = list ?? initialiser?.Invoke(count) ?? new TTarget[count];
             for (int i = offset; i < count + offset; i++)
                 serializer(i, list[i], context, this);
+            DebugCheck();
             return list;
         }
 
-        void Assert(bool result, string message = null, [CallerMemberName] string function = "", [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
+        void ISerializer.Assert(bool condition, string message) => Assert(condition, message);
+        void Assert(bool condition, string message = null, [CallerMemberName] string function = "", [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
         {
-            if (result)
+            if (condition)
                 return;
 
             var formatted = $"Assertion failed: {message} at {function} in {file}:{line}";
@@ -192,5 +198,7 @@ namespace SerdesNet
 
         protected virtual void Dispose(bool disposing) { }
         public void Dispose() => Dispose(true);
+
+        [Conditional("DEBUG")] void DebugCheck() => Check();
     }
 }

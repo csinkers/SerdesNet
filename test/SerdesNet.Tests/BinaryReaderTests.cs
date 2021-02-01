@@ -211,7 +211,7 @@ namespace SerdesNet.Tests
                 Read(new byte[] { 0, 1, 2, 3 })
                  .ByteArray("", null, 5));
 
-            Assert.Collection(Read(new byte[] { 0, 1, 2, 3 }).ByteArrayHex("", null, 4),
+            Assert.Collection(Read(new byte[] { 0, 1, 2, 3 }).ByteArray("", null, 4),
                 x => Assert.Equal(0, x),
                 x => Assert.Equal(1, x),
                 x => Assert.Equal(2, x),
@@ -219,21 +219,19 @@ namespace SerdesNet.Tests
             );
             Assert.Throws<EndOfStreamException>(() =>
                 Read(new byte[] { 0, 1, 2, 3 })
-                 .ByteArrayHex("", null, 5));
+                 .ByteArray("", null, 5));
         }
 
         [Fact]
         public void OffsetTests()
         {
-            Assert.Equal(SerializerMode.Reading, Read(new byte[] { 0 }).Mode);
+            Assert.Equal(SerializerFlags.Read, Read(new byte[] { 0 }).Flags);
             var buf = new byte[] {0, 1, 2, 3, 4, 5, 6, 7};
             var s = Read(buf);
             Assert.Equal(buf.Length, s.BytesRemaining);
             Assert.Equal(0, s.Offset);
             s.Comment("x"); Assert.Equal(0, s.Offset);
             s.NewLine(); Assert.Equal(0, s.Offset);
-            s.PushVersion(1); Assert.Equal(0, s.Offset);
-            Assert.Equal(1, s.PopVersion()); Assert.Equal(0, s.Offset);
 
             Assert.Equal(0, s.UInt8("", 0));
             Assert.Equal(1, s.Offset);
