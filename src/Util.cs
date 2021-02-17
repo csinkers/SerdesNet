@@ -7,6 +7,7 @@ namespace SerdesNet
         const string HexChars = "0123456789ABCDEF";
         public static string ConvertToHexString(byte[] bytes)
         {
+            if (bytes == null) return "";
             var result = new StringBuilder(bytes.Length * 2);
             foreach (var b in bytes)
             {

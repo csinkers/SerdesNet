@@ -106,8 +106,9 @@ namespace SerdesNet
         public byte[] ByteArray(string name, byte[] existing, int n)
         {
             var v = existing;
-            _bw.Write(v);
-            _offset += v.Length;
+            if (v != null && v.Length > 0)
+                _bw.Write(v);
+            _offset += v?.Length ?? 0;
             DebugCheck();
             return existing;
         }
