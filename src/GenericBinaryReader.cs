@@ -8,15 +8,22 @@ namespace SerdesNet
     public class GenericBinaryReader : ISerializer
     {
         readonly Action<string> _assertionFailed;
+        readonly Action _disposeAction;
         readonly Func<byte[], string> _bytesToString;
         readonly BinaryReader _br;
         readonly long _maxOffset;
         long _offset;
 
-        public GenericBinaryReader(BinaryReader br, long maxLength, Func<byte[], string> bytesToString, Action<string> assertionFailed = null)
+        public GenericBinaryReader(
+            BinaryReader br,
+            long maxLength,
+            Func<byte[], string> bytesToString,
+            Action<string> assertionFailed = null,
+            Action disposeAction = null)
         {
             _br = br ?? throw new ArgumentNullException(nameof(br));
             _assertionFailed = assertionFailed;
+            _disposeAction = disposeAction;
             _bytesToString = bytesToString ?? throw new ArgumentNullException(nameof(bytesToString));
             _offset = br.BaseStream.Position;
             _maxOffset = _offset + maxLength;
@@ -198,7 +205,11 @@ namespace SerdesNet
             _assertionFailed?.Invoke(formatted);
         }
 
-        protected virtual void Dispose(bool disposing) { }
+        protected virtual void Dispose(bool disposing)
+        {
+            if(disposing)
+                _disposeAction?.Invoke();
+        }
         public void Dispose() => Dispose(true);
     }
 }

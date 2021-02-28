@@ -9,15 +9,21 @@ namespace SerdesNet
     public class GenericBinaryWriter : ISerializer
     {
         readonly Action<string> _assertionFailed;
+        readonly Action _disposeAction;
         readonly Func<string, byte[]> _stringToBytes;
         readonly BinaryWriter _bw;
         long _offset;
 
-        public GenericBinaryWriter(BinaryWriter bw, Func<string, byte[]> stringToBytes, Action<string> assertionFailed = null)
+        public GenericBinaryWriter(
+            BinaryWriter bw,
+            Func<string, byte[]> stringToBytes,
+            Action<string> assertionFailed = null,
+            Action disposeAction = null)
         {
             _bw = bw ?? throw new ArgumentNullException(nameof(bw));
             _stringToBytes = stringToBytes ?? throw new ArgumentNullException(nameof(stringToBytes));
             _assertionFailed = assertionFailed;
+            _disposeAction = disposeAction;
         }
 
         public SerializerFlags Flags => SerializerFlags.Write;
@@ -197,7 +203,11 @@ namespace SerdesNet
             _assertionFailed?.Invoke(formatted);
         }
 
-        protected virtual void Dispose(bool disposing) { }
+        protected virtual void Dispose(bool disposing)
+        {
+            if(disposing)
+                _disposeAction?.Invoke();
+        }
         public void Dispose() => Dispose(true);
 
         [Conditional("DEBUG")] void DebugCheck() => Check();
