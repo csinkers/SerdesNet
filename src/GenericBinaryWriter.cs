@@ -102,8 +102,7 @@ namespace SerdesNet
 
         public Guid Guid(string name, Guid existing)
         {
-            var v = existing;
-            _bw.Write(v.ToByteArray());
+            _bw.Write(existing.ToByteArray());
             _offset += 16L;
             DebugCheck();
             return existing;
@@ -111,18 +110,16 @@ namespace SerdesNet
 
         public byte[] ByteArray(string name, byte[] existing, int n)
         {
-            var v = existing;
-            if (v != null && v.Length > 0)
-                _bw.Write(v);
-            _offset += v?.Length ?? 0;
+            if (existing != null && existing.Length > 0)
+                _bw.Write(existing);
+            _offset += existing?.Length ?? 0;
             DebugCheck();
             return existing;
         }
 
         public string NullTerminatedString(string name, string existing)
         {
-            var v = existing;
-            var bytes = _stringToBytes(v);
+            var bytes = _stringToBytes(existing);
             _bw.Write(bytes);
             _bw.Write((byte)0);
             _offset += bytes.Length + 1; // add 2 bytes for the null terminator
