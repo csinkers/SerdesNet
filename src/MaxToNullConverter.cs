@@ -15,52 +15,52 @@ namespace SerdesNet
     {
         public static readonly MaxToNullConverter Instance = new MaxToNullConverter();
         MaxToNullConverter() { }
-        public static byte? Serdes(string name, byte? existing, Func<string, byte, byte, byte> serializer)
+        public static byte? Serdes(string name, byte? value, Func<string, byte, byte, byte> serializer)
         {
             if (serializer == null) throw new ArgumentNullException(nameof(serializer));
-            return Instance.FromNumeric(serializer(name, Instance.ToNumeric(existing), 0));
+            return Instance.FromNumeric(serializer(name, Instance.ToNumeric(value), 0));
         }
 
-        public static sbyte? Serdes(string name, sbyte? existing, Func<string, sbyte, sbyte, sbyte> serializer)
+        public static sbyte? Serdes(string name, sbyte? value, Func<string, sbyte, sbyte, sbyte> serializer)
         {
             if (serializer == null) throw new ArgumentNullException(nameof(serializer));
-            return Instance.FromNumeric(serializer(name, Instance.ToNumeric(existing), 0));
+            return Instance.FromNumeric(serializer(name, Instance.ToNumeric(value), 0));
         }
 
-        public static ushort? Serdes(string name, ushort? existing, Func<string, ushort, ushort, ushort> serializer)
+        public static ushort? Serdes(string name, ushort? value, Func<string, ushort, ushort, ushort> serializer)
         {
             if (serializer == null) throw new ArgumentNullException(nameof(serializer));
-            return Instance.FromNumeric(serializer(name, Instance.ToNumeric(existing), 0));
+            return Instance.FromNumeric(serializer(name, Instance.ToNumeric(value), 0));
         }
 
-        public static short? Serdes(string name, short? existing, Func<string, short, short, short> serializer)
+        public static short? Serdes(string name, short? value, Func<string, short, short, short> serializer)
         {
             if (serializer == null) throw new ArgumentNullException(nameof(serializer));
-            return Instance.FromNumeric(serializer(name, Instance.ToNumeric(existing), 0));
+            return Instance.FromNumeric(serializer(name, Instance.ToNumeric(value), 0));
         }
 
-        public static uint? Serdes(string name, uint? existing, Func<string, uint, uint, uint> serializer)
+        public static uint? Serdes(string name, uint? value, Func<string, uint, uint, uint> serializer)
         {
             if (serializer == null) throw new ArgumentNullException(nameof(serializer));
-            return Instance.FromNumeric(serializer(name, Instance.ToNumeric(existing), 0));
+            return Instance.FromNumeric(serializer(name, Instance.ToNumeric(value), 0));
         }
 
-        public static int? Serdes(string name, int? existing, Func<string, int, int, int> serializer)
+        public static int? Serdes(string name, int? value, Func<string, int, int, int> serializer)
         {
             if (serializer == null) throw new ArgumentNullException(nameof(serializer));
-            return Instance.FromNumeric(serializer(name, Instance.ToNumeric(existing), 0));
+            return Instance.FromNumeric(serializer(name, Instance.ToNumeric(value), 0));
         }
 
-        public static ulong? Serdes(string name, ulong? existing, Func<string, ulong, ulong, ulong> serializer)
+        public static ulong? Serdes(string name, ulong? value, Func<string, ulong, ulong, ulong> serializer)
         {
             if (serializer == null) throw new ArgumentNullException(nameof(serializer));
-            return Instance.FromNumeric(serializer(name, Instance.ToNumeric(existing), 0));
+            return Instance.FromNumeric(serializer(name, Instance.ToNumeric(value), 0));
         }
 
-        public static long? Serdes(string name, long? existing, Func<string, long, long, long> serializer)
+        public static long? Serdes(string name, long? value, Func<string, long, long, long> serializer)
         {
             if (serializer == null) throw new ArgumentNullException(nameof(serializer));
-            return Instance.FromNumeric(serializer(name, Instance.ToNumeric(existing), 0));
+            return Instance.FromNumeric(serializer(name, Instance.ToNumeric(value), 0));
         }
 
         public byte ToNumeric(byte? memory) => memory ?? byte.MaxValue;
@@ -106,7 +106,7 @@ namespace SerdesNet
         IConverter<int, T?>,
         IConverter<ulong, T?>,
         IConverter<long, T?>
-        where T : struct, Enum
+        where T : unmanaged, Enum
     {
         public static readonly MaxToNullConverter<T> Instance = new MaxToNullConverter<T>();
         MaxToNullConverter() { }

@@ -66,155 +66,156 @@ namespace SerdesNet
 
         public TMemory Transform<TPersistent, TMemory>(
                 string name,
-                TMemory existing,
+                TMemory value,
                 Func<string, TPersistent, ISerializer, TPersistent> serializer,
                 IConverter<TPersistent, TMemory> converter) =>
-            converter.FromNumeric(serializer(name, converter.ToNumeric(existing), this));
+            converter.FromNumeric(serializer(name, converter.ToNumeric(value), this));
 
-        public T TransformEnumU8<T>(string name, T existing, IConverter<byte, T> converter) 
-            => converter.FromNumeric(UInt8(name, converter.ToNumeric(existing), 0));
-        public T TransformEnumU16<T>(string name, T existing, IConverter<ushort, T> converter)
-            => converter.FromNumeric(UInt16(name, converter.ToNumeric(existing), 0));
-        public T TransformEnumU32<T>(string name, T existing, IConverter<uint, T> converter) 
-            => converter.FromNumeric(UInt32(name, converter.ToNumeric(existing), 0));
+        public T TransformEnumU8<T>(string name, T value, IConverter<byte, T> converter) 
+            => converter.FromNumeric(UInt8(name, converter.ToNumeric(value), 0));
+        public T TransformEnumU16<T>(string name, T value, IConverter<ushort, T> converter)
+            => converter.FromNumeric(UInt16(name, converter.ToNumeric(value), 0));
+        public T TransformEnumU32<T>(string name, T value, IConverter<uint, T> converter) 
+            => converter.FromNumeric(UInt32(name, converter.ToNumeric(value), 0));
 
-        public sbyte Int8(string name, sbyte existing, sbyte defaultValue)
+        public sbyte Int8(string name, sbyte value, sbyte defaultValue)
         {
             var offset = LocalOffset;
-            var v =  _s.Int8(name, existing, defaultValue);
+            value =  _s.Int8(name, value, defaultValue);
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} y)", offset, name, v);
-            return v;
+            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} y)", offset, name, value);
+            return value;
         }
 
-        public short Int16(string name, short existing, short defaultValue)
+        public short Int16(string name, short value, short defaultValue)
         {
             var offset = LocalOffset;
-            var v =  _s.Int16(name, existing, defaultValue);
+            value =  _s.Int16(name, value, defaultValue);
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} s)", offset, name, v);
-            return v;
+            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} s)", offset, name, value);
+            return value;
         }
 
-        public int Int32(string name, int existing, int defaultValue)
+        public int Int32(string name, int value, int defaultValue)
         {
             var offset = LocalOffset;
-            var v =  _s.Int32(name, existing, defaultValue);
+            value =  _s.Int32(name, value, defaultValue);
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X})", offset, name, v);
-            return v;
+            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X})", offset, name, value);
+            return value;
         }
 
-        public long Int64(string name, long existing, long defaultValue)
+        public long Int64(string name, long value, long defaultValue)
         {
             var offset = LocalOffset;
-            var v =  _s.Int64(name, existing, defaultValue);
+            value =  _s.Int64(name, value, defaultValue);
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} L)", offset, name, v);
-            return v;
+            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} L)", offset, name, value);
+            return value;
         }
 
-        public byte UInt8(string name, byte existing, byte defaultValue)
+        public byte UInt8(string name, byte value, byte defaultValue)
         {
             var offset = LocalOffset;
-            var v =  _s.UInt8(name, existing, defaultValue);
+            value =  _s.UInt8(name, value, defaultValue);
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} uy)", offset, name, v);
-            return v;
+            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} uy)", offset, name, value);
+            return value;
         }
 
-        public ushort UInt16(string name, ushort existing, ushort defaultValue)
+        public ushort UInt16(string name, ushort value, ushort defaultValue)
         {
             var offset = LocalOffset;
-            var v =  _s.UInt16(name, existing, defaultValue);
+            value =  _s.UInt16(name, value, defaultValue);
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} us)", offset, name, v);
-            return v;
+            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} us)", offset, name, value);
+            return value;
         }
 
-        public uint UInt32(string name, uint existing, uint defaultValue)
+        public uint UInt32(string name, uint value, uint defaultValue)
         {
             var offset = LocalOffset;
-            var v =  _s.UInt32(name, existing, defaultValue);
+            value =  _s.UInt32(name, value, defaultValue);
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} u)", offset, name, v);
-            return v;
+            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} u)", offset, name, value);
+            return value;
         }
 
-        public ulong UInt64(string name, ulong existing, ulong defaultValue)
+        public ulong UInt64(string name, ulong value, ulong defaultValue)
         {
             var offset = LocalOffset;
-            var v =  _s.UInt64(name, existing, defaultValue);
+            value =  _s.UInt64(name, value, defaultValue);
             DoIndent();
-            // _tw.WriteLine("{0:X} {1} = {2} (0x{3:X}`{4:X8} UL)", offset, name, v, (v & 0xffffffff00000000UL) >> 32, v & 0xffffffffUL);
-            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} UL)", offset, name, v);
-            return v;
+            // _tw.WriteLine("{0:X} {1} = {2} (0x{3:X}`{4:X8} UL)", offset, name, value, (value & 0xffffffff00000000UL) >> 32, value & 0xffffffffUL);
+            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} UL)", offset, name, value);
+            return value;
         }
 
-        public T EnumU8<T>(string name, T existing) where T : struct, Enum
+        public T EnumU8<T>(string name, T value) where T : unmanaged, Enum
         {
             var offset = LocalOffset;
-            var v =  _s.EnumU8(name, existing);
-            var label = Enum.GetName(typeof(T), v);
-            var value = (byte)(object)v;
+            value =  _s.EnumU8(name, value);
+            var label = Enum.GetName(typeof(T), value);
+            var uintValue = SerdesUtil.EnumToUInt(value);
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} uy) // {3}", offset, name, value, label);
-            return v;
+            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} uy) // {3}", offset, name, uintValue, label);
+            return value;
         }
 
-        public T EnumU16<T>(string name, T existing) where T : struct, Enum
+        public T EnumU16<T>(string name, T value) where T : unmanaged, Enum
         {
             var offset = LocalOffset;
-            var v =  _s.EnumU16(name, existing);
-            var label = Enum.GetName(typeof(T), v);
-            var value = (ushort)(object)v;
+            value =  _s.EnumU16(name, value);
+            var label = Enum.GetName(typeof(T), value);
+            var uintValue = SerdesUtil.EnumToUInt(value);
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} us) // {3}", offset, name, value, label);
-            return v;
+            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} us) // {3}", offset, name, uintValue, label);
+            return value;
         }
 
-        public T EnumU32<T>(string name, T existing) where T : struct, Enum
+        public T EnumU32<T>(string name, T value) where T : unmanaged, Enum
         {
             var offset = LocalOffset;
-            var v =  _s.EnumU32(name, existing);
-            var label = Enum.GetName(typeof(T), v);
-            var value = (uint)(object)v;
+            value =  _s.EnumU32(name, value);
+            var label = Enum.GetName(typeof(T), value);
+            var uintValue = SerdesUtil.EnumToUInt(value);
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} u) // {3}", offset, name, value, label);
-            return v;
+            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} u) // {3}", offset, name, uintValue, label);
+            return value;
         }
 
-        public Guid Guid(string name, Guid existing)
+        public Guid Guid(string name, Guid value)
         {
             var offset = LocalOffset;
-            var v =  _s.Guid(name, existing);
+            value =  _s.Guid(name, value);
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = {2:B}", offset, name, v);
-            return v;
+            _tw.WriteLine("{0:X} {1} = {2:B}", offset, name, value);
+            return value;
         }
 
-        public byte[] ByteArray(string name, byte[] existing, int n)
+        public byte[] Bytes(string name, byte[] value, int n)
         {
 
             var offset = LocalOffset;
-            var v =  _s.ByteArray(name, existing, n);
+            value =  _s.Bytes(name, value, n);
             DoIndent();
             _tw.Write("{0:X} {1} = ", offset, name);
 
             if (n <= 16)
-                _tw.WriteLine(Util.ConvertToHexString(v));
+                _tw.WriteLine(SerdesUtil.ConvertToHexString(value, n));
             else
-                PrintByteArrayHex(v);
-            return v;
+                PrintByteArrayHex(value, n);
+            return value;
         }
 
-        void PrintByteArrayHex(byte[] v)
+        void PrintByteArrayHex(byte[] value, int n)
         {
             _indent += 4;
             var payloadOffset = 0;
             var sb = new StringBuilder(16);
-            foreach (var b in v)
+            for(int i = 0; i < n; i++)
             {
+                byte b = value[i];
                 if (payloadOffset % 16 == 0)
                 {
                     _tw.Write(' ');
@@ -247,53 +248,53 @@ namespace SerdesNet
             _indent -= 4;
         }
 
-        public string NullTerminatedString(string name, string existing)
+        public string NullTerminatedString(string name, string value)
         {
             var offset = LocalOffset;
-            var v =  _s.NullTerminatedString(name, existing);
+            value =  _s.NullTerminatedString(name, value);
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = \"{2}\"", offset, name, v);
-            return v;
+            _tw.WriteLine("{0:X} {1} = \"{2}\"", offset, name, value);
+            return value;
         }
 
-        public string FixedLengthString(string name, string existing, int length)
+        public string FixedLengthString(string name, string value, int length)
         {
             var offset = LocalOffset;
-            var v = _s.FixedLengthString(name, existing, length);
+            value = _s.FixedLengthString(name, value, length);
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = \"{2}\"", offset, name, v);
+            _tw.WriteLine("{0:X} {1} = \"{2}\"", offset, name, value);
 
-            var bytes = _stringToBytes(v);
+            var bytes = _stringToBytes(value);
             if (bytes.Length > length + 1) throw new InvalidOperationException("Tried to write overlength string");
-            return v;
+            return value;
         }
 
-        public void RepeatU8(string name, byte v, int length)
+        public void RepeatU8(string name, byte value, int length)
         {
             var offset = LocalOffset;
-            _s.RepeatU8(name, v, length);
+            _s.RepeatU8(name, value, length);
             DoIndent();
             _tw.WriteLine(
                 "{0:X} {1} = [{2} bytes (0x{2:X}) of 0x{3:X}]",
                 offset,
                 name,
                 length,
-                v
+                value
             );
         }
 
-        public T Object<T>(string name, T existing, Func<int, T, ISerializer, T> serdes)
+        public T Object<T>(string name, T value, Func<int, T, ISerializer, T> serdes)
         {
             Begin(name);
-            var result = serdes(0, existing, this);
+            var result = serdes(0, value, this);
             End();
             return result;
         }
 
-        public T Object<T, TContext>(string name, T existing, TContext context, Func<int, T, TContext, ISerializer, T> serdes)
+        public T Object<T, TContext>(string name, T value, TContext context, Func<int, T, TContext, ISerializer, T> serdes)
         {
             Begin(name);
-            var result = serdes(0, existing, context, this);
+            var result = serdes(0, value, context, this);
             End();
             return result;
         }

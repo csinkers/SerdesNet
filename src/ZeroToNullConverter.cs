@@ -61,7 +61,7 @@ namespace SerdesNet
         IConverter<int, T?>,
         IConverter<ulong, T?>,
         IConverter<long, T?>
-        where T : struct, Enum
+        where T : unmanaged, Enum
     {
         public static readonly ZeroToNullConverter<T> Instance = new ZeroToNullConverter<T>();
         ZeroToNullConverter() { }

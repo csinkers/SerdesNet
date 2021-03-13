@@ -52,19 +52,19 @@ namespace SerdesNet
         }
 
         public void Pad(int bytes) => RepeatU8(null, 0, bytes);
-        public sbyte Int8(string name, sbyte existing, sbyte _ = 0) { _offset += 1L; return _br.ReadSByte(); }
-        public short Int16(string name, short existing, short _ = 0) { _offset += 2L; return _br.ReadInt16(); }
-        public int Int32(string name, int existing, int _ = 0) { _offset += 4L; return _br.ReadInt32(); }
-        public long Int64(string name, long existing, long _ = 0) { _offset += 8L; return _br.ReadInt64(); }
-        public byte UInt8(string name, byte existing, byte _ = 0) { _offset += 1L; return _br.ReadByte(); }
-        public ushort UInt16(string name, ushort existing, ushort _ = 0) { _offset += 2L; return _br.ReadUInt16(); }
-        public uint UInt32(string name, uint existing, uint _ = 0) { _offset += 4L; return _br.ReadUInt32(); }
-        public ulong UInt64(string name, ulong existing, ulong _ = 0) { _offset += 8L; return _br.ReadUInt64(); }
-        public T EnumU8<T>(string name, T existing) where T : struct, Enum { _offset += 1L; return (T)(object)_br.ReadByte(); }
-        public T EnumU16<T>(string name, T existing) where T : struct, Enum { _offset += 2L; return (T)(object)_br.ReadUInt16(); }
-        public T EnumU32<T>(string name, T existing) where T : struct, Enum { _offset += 4L; return (T)(object)_br.ReadUInt32(); }
+        public sbyte Int8(string name, sbyte value, sbyte _ = 0) { _offset += 1L; return _br.ReadSByte(); }
+        public short Int16(string name, short value, short _ = 0) { _offset += 2L; return _br.ReadInt16(); }
+        public int Int32(string name, int value, int _ = 0) { _offset += 4L; return _br.ReadInt32(); }
+        public long Int64(string name, long value, long _ = 0) { _offset += 8L; return _br.ReadInt64(); }
+        public byte UInt8(string name, byte value, byte _ = 0) { _offset += 1L; return _br.ReadByte(); }
+        public ushort UInt16(string name, ushort value, ushort _ = 0) { _offset += 2L; return _br.ReadUInt16(); }
+        public uint UInt32(string name, uint value, uint _ = 0) { _offset += 4L; return _br.ReadUInt32(); }
+        public ulong UInt64(string name, ulong value, ulong _ = 0) { _offset += 8L; return _br.ReadUInt64(); }
+        public T EnumU8<T>(string name, T value) where T : unmanaged, Enum { _offset += 1L; return SerdesUtil.ByteToEnum<T>(_br.ReadByte()); }
+        public T EnumU16<T>(string name, T value) where T : unmanaged, Enum { _offset += 2L; return SerdesUtil.UShortToEnum<T>((_br.ReadUInt16())); }
+        public T EnumU32<T>(string name, T value) where T : unmanaged, Enum { _offset += 4L; return SerdesUtil.UIntToEnum<T>(_br.ReadUInt32()); }
 
-        public Guid Guid(string name, Guid existing)
+        public Guid Guid(string name, Guid value)
         {
             _offset += 16L;
             var bytes = _br.ReadBytes(16);
@@ -73,25 +73,25 @@ namespace SerdesNet
             return new Guid(bytes);
         }
 
-        public T Object<T>(string name, T existing, Func<int, T, ISerializer, T> serdes) => serdes(0, existing, this);
-        public T Object<T, TContext>(string name, T existing, TContext context, Func<int, T, TContext, ISerializer, T> serdes) => serdes(0, existing, context, this);
+        public T Object<T>(string name, T value, Func<int, T, ISerializer, T> serdes) => serdes(0, value, this);
+        public T Object<T, TContext>(string name, T value, TContext context, Func<int, T, TContext, ISerializer, T> serdes) => serdes(0, value, context, this);
         public void Object(string name, Action<ISerializer> serdes) => serdes(this);
 
         public TMemory Transform<TPersistent, TMemory>(
                 string name,
-                TMemory existing,
+                TMemory value,
                 Func<string, TPersistent, ISerializer, TPersistent> serializer,
                 IConverter<TPersistent, TMemory> converter) =>
-            converter.FromNumeric(serializer(name, converter.ToNumeric(existing), this));
+            converter.FromNumeric(serializer(name, converter.ToNumeric(value), this));
 
-        public T TransformEnumU8<T>(string name, T existing, IConverter<byte, T> converter) 
-            => converter.FromNumeric(UInt8(name, converter.ToNumeric(existing)));
-        public T TransformEnumU16<T>(string name, T existing, IConverter<ushort, T> converter) 
-            => converter.FromNumeric(UInt16(name, converter.ToNumeric(existing)));
-        public T TransformEnumU32<T>(string name, T existing, IConverter<uint, T> converter) 
-            => converter.FromNumeric(UInt32(name, converter.ToNumeric(existing)));
+        public T TransformEnumU8<T>(string name, T value, IConverter<byte, T> converter) 
+            => converter.FromNumeric(UInt8(name, converter.ToNumeric(value)));
+        public T TransformEnumU16<T>(string name, T value, IConverter<ushort, T> converter) 
+            => converter.FromNumeric(UInt16(name, converter.ToNumeric(value)));
+        public T TransformEnumU32<T>(string name, T value, IConverter<uint, T> converter) 
+            => converter.FromNumeric(UInt32(name, converter.ToNumeric(value)));
 
-        public byte[] ByteArray(string name, byte[] existing, int n)
+        public byte[] Bytes(string name, byte[] value, int n)
         {
             var v = _br.ReadBytes(n);
             if (v.Length < n)
@@ -100,7 +100,7 @@ namespace SerdesNet
             return v;
         }
 
-        public string NullTerminatedString(string name, string existing)
+        public string NullTerminatedString(string name, string value)
         {
             var bytes = new List<byte>();
             for (;;)
@@ -115,7 +115,7 @@ namespace SerdesNet
             return _bytesToString(bytes.ToArray());
         }
 
-        public string FixedLengthString(string name, string existing, int length)
+        public string FixedLengthString(string name, string value, int length)
         {
             var bytes = _br.ReadBytes(length);
             if (bytes.Length < length)

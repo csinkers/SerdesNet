@@ -164,7 +164,7 @@ namespace SerdesNet.Tests
         public void ByteArrayTest()
         {
             Assert.Equal(new byte[] { 0, 1, 2, 3 },
-                Write(s => s.ByteArray("", new byte[] { 0, 1, 2, 3 }, 4)));
+                Write(s => s.Bytes("", new byte[] { 0, 1, 2, 3 }, 4)));
         }
 
         [Fact]

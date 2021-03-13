@@ -13,6 +13,18 @@
     <PackageTags>serialisation serialization</PackageTags>
     <RepositoryUrl>https://github.com/CSinkers/SerdesNet</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
-    <Version>1.6.1</Version>
+    <Version>1.7.1</Version>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Memory" Version="4.5.3" />
+  </ItemGroup>
 </Project>

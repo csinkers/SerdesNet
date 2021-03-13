@@ -173,7 +173,7 @@ namespace SerdesNet.Tests
         [Fact]
         public void ByteArrayTest()
         {
-            Assert.Equal("0 name = 00010203", Write(s => s.ByteArray("name", new byte[] { 0, 1, 2, 3 }, 4)));
+            Assert.Equal("0 name = 00010203", Write(s => s.Bytes("name", new byte[] { 0, 1, 2, 3 }, 4)));
             Assert.Equal(
                 @"0 name =  
     0000: 0001 0203 0405 0607-0809 0A0B 0C0D 0E0F ................
@@ -192,7 +192,7 @@ namespace SerdesNet.Tests
     00D0: D0D1 D2D3 D4D5 D6D7-D8D9 DADB DCDD DEDF ................
     00E0: E0E1 E2E3 E4E5 E6E7-E8E9 EAEB ECED EEEF ................
     00F0: F0F1 F2F3 F4F5 F6F7-F8F9 FAFB FCFD FEFF ................",
-                Write(s => s.ByteArray("name", Enumerable.Range(0, 256).Select(x => (byte)x).ToArray(), 256)));
+                Write(s => s.Bytes("name", Enumerable.Range(0, 256).Select(x => (byte)x).ToArray(), 256)));
         }
 
         [Fact]

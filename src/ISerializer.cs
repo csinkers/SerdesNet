@@ -19,35 +19,35 @@ namespace SerdesNet
         bool IsComplete(); // Ensure offset matches stream position
 
         void Pad(int bytes); // a given number of bytes of 0 padding
-        sbyte Int8(string name, sbyte existing, sbyte defaultValue = 0);
-        short Int16(string name, short existing, short defaultValue = 0);
-        int Int32(string name, int existing, int defaultValue = 0);
-        long Int64(string name, long existing, long defaultValue = 0);
-        byte UInt8(string name, byte existing, byte defaultValue = 0);
-        ushort UInt16(string name, ushort existing, ushort defaultValue = 0);
-        uint UInt32(string name, uint existing, uint defaultValue = 0);
-        ulong UInt64(string name, ulong existing, ulong defaultValue = 0);
+        sbyte Int8(string name, sbyte value, sbyte defaultValue = 0);
+        short Int16(string name, short value, short defaultValue = 0);
+        int Int32(string name, int value, int defaultValue = 0);
+        long Int64(string name, long value, long defaultValue = 0);
+        byte UInt8(string name, byte value, byte defaultValue = 0);
+        ushort UInt16(string name, ushort value, ushort defaultValue = 0);
+        uint UInt32(string name, uint value, uint defaultValue = 0);
+        ulong UInt64(string name, ulong value, ulong defaultValue = 0);
 
-        T EnumU8<T>(string name, T existing) where T : struct, Enum;
-        T EnumU16<T>(string name, T existing) where T : struct, Enum;
-        T EnumU32<T>(string name, T existing) where T : struct, Enum;
+        T EnumU8<T>(string name, T value) where T : unmanaged, Enum;
+        T EnumU16<T>(string name, T value) where T : unmanaged, Enum;
+        T EnumU32<T>(string name, T value) where T : unmanaged, Enum;
         T Transform<TNumeric, T>(
             string name,
-            T existing,
+            T value,
             Func<string, TNumeric, ISerializer, TNumeric> serializer,
             IConverter<TNumeric, T> converter);
 
-        T TransformEnumU8<T>(string name, T existing, IConverter<byte, T> converter);
-        T TransformEnumU16<T>(string name, T existing, IConverter<ushort, T> converter);
-        T TransformEnumU32<T>(string name, T existing, IConverter<uint, T> converter);
+        T TransformEnumU8<T>(string name, T value, IConverter<byte, T> converter);
+        T TransformEnumU16<T>(string name, T value, IConverter<ushort, T> converter);
+        T TransformEnumU32<T>(string name, T value, IConverter<uint, T> converter);
 
-        Guid Guid(string name, Guid existing);
-        byte[] ByteArray(string name, byte[] existing, int length);
-        string NullTerminatedString(string name, string existing);
-        string FixedLengthString(string name, string existing, int length);
+        Guid Guid(string name, Guid value);
+        byte[] Bytes(string name, byte[] value, int length);
+        string NullTerminatedString(string name, string value);
+        string FixedLengthString(string name, string value, int length);
         void RepeatU8(string name, byte value, int count); // Either writes a block of padding or verifies the consistency of one while reading
-        T Object<T>(string name, T existing, Func<int, T, ISerializer, T> serdes);
-        T Object<T, TContext>(string name, T existing, TContext context, Func<int, T, TContext, ISerializer, T> serdes);
+        T Object<T>(string name, T value, Func<int, T, ISerializer, T> serdes);
+        T Object<T, TContext>(string name, T value, TContext context, Func<int, T, TContext, ISerializer, T> serdes);
         void Object(string name, Action<ISerializer> serdes);
         IList<TTarget> List<TTarget>(
             string name,
@@ -89,23 +89,23 @@ namespace SerdesNet
             => (i,x,s) 
                 => s.Object($"{i}", x, serdes);
 
-        public static sbyte Int8(string name, sbyte existing, ISerializer s) => s.Int8(name, existing);
-        public static short Int16(string name, short existing, ISerializer s) => s.Int16(name, existing);
-        public static int Int32(string name, int existing, ISerializer s) => s.Int32(name, existing);
-        public static long Int64(string name, long existing, ISerializer s) => s.Int64(name, existing);
-        public static byte UInt8(string name, byte existing, ISerializer s) => s.UInt8(name, existing);
-        public static ushort UInt16(string name, ushort existing, ISerializer s) => s.UInt16(name, existing);
-        public static uint UInt32(string name, uint existing, ISerializer s) => s.UInt32(name, existing);
-        public static ulong UInt64(string name, ulong existing, ISerializer s) => s.UInt64(name, existing);
+        public static sbyte Int8(string name, sbyte value, ISerializer s) => s.Int8(name, value);
+        public static short Int16(string name, short value, ISerializer s) => s.Int16(name, value);
+        public static int Int32(string name, int value, ISerializer s) => s.Int32(name, value);
+        public static long Int64(string name, long value, ISerializer s) => s.Int64(name, value);
+        public static byte UInt8(string name, byte value, ISerializer s) => s.UInt8(name, value);
+        public static ushort UInt16(string name, ushort value, ISerializer s) => s.UInt16(name, value);
+        public static uint UInt32(string name, uint value, ISerializer s) => s.UInt32(name, value);
+        public static ulong UInt64(string name, ulong value, ISerializer s) => s.UInt64(name, value);
 
-        public static Guid Guid(string name, Guid existing, ISerializer s) => s.Guid(name, existing);
-        public static string NullTerminatedString(string name, string existing, ISerializer s) => s.NullTerminatedString(name, existing);
+        public static Guid Guid(string name, Guid value, ISerializer s) => s.Guid(name, value);
+        public static string NullTerminatedString(string name, string value, ISerializer s) => s.NullTerminatedString(name, value);
 
-        public static T EnumU8<T>(int i, T v, ISerializer s) where T : struct, Enum 
+        public static T EnumU8<T>(int i, T v, ISerializer s) where T : unmanaged, Enum 
             => s.EnumU8(i.ToString(CultureInfo.InvariantCulture), v);
-        public static T EnumU16<T>(int i, T v, ISerializer s) where T : struct, Enum 
+        public static T EnumU16<T>(int i, T v, ISerializer s) where T : unmanaged, Enum 
             => s.EnumU16(i.ToString(CultureInfo.InvariantCulture), v);
-        public static T EnumU32<T>(int i, T v, ISerializer s) where T : struct, Enum 
+        public static T EnumU32<T>(int i, T v, ISerializer s) where T : unmanaged, Enum 
             => s.EnumU32(i.ToString(CultureInfo.InvariantCulture), v);
     }
 
@@ -143,19 +143,19 @@ namespace SerdesNet
             return ((x & 0xFF00FF00FF00FF00) >> 8) | ((x & 0x00FF00FF00FF00FF) << 8);
         }
 
-        public static short Int16BE(this ISerializer s, string name, short existing) => SwapBytes16(s.Int16(name, SwapBytes16(existing)));
-        public static int Int32BE(this ISerializer s, string name, int existing) => SwapBytes32(s.Int32(name, SwapBytes32(existing)));
-        public static long Int64BE(this ISerializer s, string name, long existing) => SwapBytes64(s.Int64(name, SwapBytes64(existing)));
+        public static short Int16BE(this ISerializer s, string name, short value) => SwapBytes16(s.Int16(name, SwapBytes16(value)));
+        public static int Int32BE(this ISerializer s, string name, int value) => SwapBytes32(s.Int32(name, SwapBytes32(value)));
+        public static long Int64BE(this ISerializer s, string name, long value) => SwapBytes64(s.Int64(name, SwapBytes64(value)));
 
-        public static ushort UInt16BE(this ISerializer s, string name, ushort existing) => SwapBytes16(s.UInt16(name, SwapBytes16(existing)));
-        public static uint UInt32BE(this ISerializer s, string name, uint existing) => SwapBytes32(s.UInt32(name, SwapBytes32(existing)));
-        public static ulong UInt64BE(this ISerializer s, string name, ulong existing) => SwapBytes64(s.UInt64(name, SwapBytes64(existing)));
+        public static ushort UInt16BE(this ISerializer s, string name, ushort value) => SwapBytes16(s.UInt16(name, SwapBytes16(value)));
+        public static uint UInt32BE(this ISerializer s, string name, uint value) => SwapBytes32(s.UInt32(name, SwapBytes32(value)));
+        public static ulong UInt64BE(this ISerializer s, string name, ulong value) => SwapBytes64(s.UInt64(name, SwapBytes64(value)));
 
-        public static T EnumU16BE<T>(this ISerializer s, string name, T existing)  where T : struct, Enum
+        public static T EnumU16BE<T>(this ISerializer s, string name, T value)  where T : unmanaged, Enum
 
-            => (T)(object)SwapBytes16(s.UInt16(name, SwapBytes16((ushort)(object)existing)));
-        public static T EnumU32BE<T>(this ISerializer s, string name, T existing)  where T : struct, Enum
+            => (T)(object)SwapBytes16(s.UInt16(name, SwapBytes16((ushort)(object)value)));
+        public static T EnumU32BE<T>(this ISerializer s, string name, T value)  where T : unmanaged, Enum
 
-            => (T)(object)SwapBytes32(s.UInt32(name, SwapBytes32((uint)(object)existing)));
+            => (T)(object)SwapBytes32(s.UInt32(name, SwapBytes32((uint)(object)value)));
     }
 }

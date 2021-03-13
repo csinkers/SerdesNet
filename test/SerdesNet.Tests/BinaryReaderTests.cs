@@ -201,7 +201,7 @@ namespace SerdesNet.Tests
         [Fact]
         public void ByteArrayTest()
         {
-            Assert.Collection(Read(new byte[] { 0, 1, 2, 3 }).ByteArray("", null, 4),
+            Assert.Collection(Read(new byte[] { 0, 1, 2, 3 }).Bytes("", null, 4),
                 x => Assert.Equal(0, x),
                 x => Assert.Equal(1, x),
                 x => Assert.Equal(2, x),
@@ -209,9 +209,9 @@ namespace SerdesNet.Tests
             );
             Assert.Throws<EndOfStreamException>(() =>
                 Read(new byte[] { 0, 1, 2, 3 })
-                 .ByteArray("", null, 5));
+                 .Bytes("", null, 5));
 
-            Assert.Collection(Read(new byte[] { 0, 1, 2, 3 }).ByteArray("", null, 4),
+            Assert.Collection(Read(new byte[] { 0, 1, 2, 3 }).Bytes("", null, 4),
                 x => Assert.Equal(0, x),
                 x => Assert.Equal(1, x),
                 x => Assert.Equal(2, x),
@@ -219,7 +219,7 @@ namespace SerdesNet.Tests
             );
             Assert.Throws<EndOfStreamException>(() =>
                 Read(new byte[] { 0, 1, 2, 3 })
-                 .ByteArray("", null, 5));
+                 .Bytes("", null, 5));
         }
 
         [Fact]
