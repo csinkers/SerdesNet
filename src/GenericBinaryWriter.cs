@@ -119,6 +119,7 @@ namespace SerdesNet
 
         public string NullTerminatedString(string name, string value)
         {
+            value ??= string.Empty;
             var bytes = _stringToBytes(value);
             _bw.Write(bytes);
             _bw.Write((byte)0);
@@ -129,6 +130,7 @@ namespace SerdesNet
 
         public string FixedLengthString(string name, string value, int length)
         {
+            value ??= string.Empty;
             var bytes = _stringToBytes(value ?? "");
             if (bytes.Length > length + 1) _assertionFailed("Tried to write over-length string");
             _bw.Write(bytes);

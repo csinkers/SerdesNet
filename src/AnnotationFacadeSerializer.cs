@@ -250,6 +250,7 @@ namespace SerdesNet
 
         public string NullTerminatedString(string name, string value)
         {
+            value ??= string.Empty;
             var offset = LocalOffset;
             value =  _s.NullTerminatedString(name, value);
             DoIndent();
@@ -259,6 +260,7 @@ namespace SerdesNet
 
         public string FixedLengthString(string name, string value, int length)
         {
+            value ??= string.Empty;
             var offset = LocalOffset;
             value = _s.FixedLengthString(name, value, length);
             DoIndent();
