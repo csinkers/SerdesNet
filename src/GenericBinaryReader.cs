@@ -158,7 +158,7 @@ namespace SerdesNet
             Func<int, TTarget, ISerializer, TTarget> serdes,
             Func<int, IList<TTarget>> initialiser = null)
         {
-            list = list ?? initialiser?.Invoke(count) ?? new List<TTarget>();
+            list ??= initialiser?.Invoke(count) ?? new List<TTarget>();
             for (int i = offset; i < offset + count; i++)
             {
                 var x = serdes(i, default, this);
@@ -181,7 +181,7 @@ namespace SerdesNet
             Func<int, TTarget, TContext, ISerializer, TTarget> serdes,
             Func<int, IList<TTarget>> initialiser = null)
         {
-            list = list ?? initialiser?.Invoke(count) ?? new List<TTarget>();
+            list ??= initialiser?.Invoke(count) ?? new List<TTarget>();
             for (int i = offset; i < offset + count; i++)
             {
                 var x = serdes(i, default, context, this);

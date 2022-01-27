@@ -10,7 +10,7 @@ namespace SerdesNet
     /// Delegates binary reading/writing to an underlying serializer while writing
     /// an annotated record of the data to a text writer.
     /// </summary>
-    public class AnnotationFacadeSerializer : ISerializer
+    public class AnnotationProxySerializer : ISerializer
     {
         readonly TextWriter _tw;
         readonly Func<string, byte[]> _stringToBytes;
@@ -19,7 +19,7 @@ namespace SerdesNet
         readonly bool _useRelativeOffsets;
         int _indent;
 
-        public AnnotationFacadeSerializer(ISerializer s, TextWriter tw, Func<string, byte[]> stringToBytes, bool useRelativeOffsets = true)
+        public AnnotationProxySerializer(ISerializer s, TextWriter tw, Func<string, byte[]> stringToBytes, bool useRelativeOffsets = true)
         {
             _s = s ?? throw new ArgumentNullException(nameof(s));
             _tw = tw ?? throw new ArgumentNullException(nameof(tw));
@@ -36,7 +36,8 @@ namespace SerdesNet
 
         public void Seek(long offset)
         {
-             _tw.WriteLine("{1:X} Seek to {0:X} for overwrite", offset, LocalOffset);
+            DoIndent();
+             _tw.Write("{1:X} Seek to {0:X} for overwrite", offset, LocalOffset);
             _s.Seek(offset);
         }
 
@@ -44,12 +45,22 @@ namespace SerdesNet
         public void Assert(bool condition, string message) => _s.Assert(condition, message);
         public bool IsComplete() => _s.IsComplete();
         public void Pad(int bytes) => _s.Pad(bytes); // Don't write anything to the annotation stream for padding
-        void DoIndent() => _tw.Write(new string(' ', _indent));
-        public void Comment(string msg) { DoIndent(); _tw.WriteLine("// {0}", msg); }
+
+        string _indentString = "";
+        void DoIndent()
+        {
+            if (_indent != _indentString.Length)
+                _indentString = new string(' ', _indent);
+
+            _tw.WriteLine();
+            _tw.Write(_indentString);
+        }
+
+        public void Comment(string msg) { _tw.Write(" // {0}", msg); }
         public void Begin(string name)
         {
             DoIndent();
-            _tw.WriteLine($"{LocalOffset:X} {name}: {{");
+            _tw.Write($"{LocalOffset:X} {name}: {{");
             _indent += 4;
             _offsetStack.Push(Offset);
         }
@@ -59,7 +70,7 @@ namespace SerdesNet
             _offsetStack.Pop();
             _indent -= 4;
             DoIndent();
-            _tw.WriteLine("}");
+            _tw.Write("}");
         }
 
         public void NewLine() => _tw.WriteLine();
@@ -83,7 +94,7 @@ namespace SerdesNet
             var offset = LocalOffset;
             value =  _s.Int8(name, value, defaultValue);
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} y)", offset, name, value);
+            _tw.Write("{0:X} {1} = {2} (0x{2:X} y)", offset, name, value);
             return value;
         }
 
@@ -92,7 +103,7 @@ namespace SerdesNet
             var offset = LocalOffset;
             value =  _s.Int16(name, value, defaultValue);
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} s)", offset, name, value);
+            _tw.Write("{0:X} {1} = {2} (0x{2:X} s)", offset, name, value);
             return value;
         }
 
@@ -101,7 +112,7 @@ namespace SerdesNet
             var offset = LocalOffset;
             value =  _s.Int32(name, value, defaultValue);
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X})", offset, name, value);
+            _tw.Write("{0:X} {1} = {2} (0x{2:X})", offset, name, value);
             return value;
         }
 
@@ -110,7 +121,7 @@ namespace SerdesNet
             var offset = LocalOffset;
             value =  _s.Int64(name, value, defaultValue);
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} L)", offset, name, value);
+            _tw.Write("{0:X} {1} = {2} (0x{2:X} L)", offset, name, value);
             return value;
         }
 
@@ -119,7 +130,7 @@ namespace SerdesNet
             var offset = LocalOffset;
             value =  _s.UInt8(name, value, defaultValue);
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} uy)", offset, name, value);
+            _tw.Write("{0:X} {1} = {2} (0x{2:X} uy)", offset, name, value);
             return value;
         }
 
@@ -128,7 +139,7 @@ namespace SerdesNet
             var offset = LocalOffset;
             value =  _s.UInt16(name, value, defaultValue);
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} us)", offset, name, value);
+            _tw.Write("{0:X} {1} = {2} (0x{2:X} us)", offset, name, value);
             return value;
         }
 
@@ -137,7 +148,7 @@ namespace SerdesNet
             var offset = LocalOffset;
             value =  _s.UInt32(name, value, defaultValue);
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} u)", offset, name, value);
+            _tw.Write("{0:X} {1} = {2} (0x{2:X} u)", offset, name, value);
             return value;
         }
 
@@ -146,8 +157,8 @@ namespace SerdesNet
             var offset = LocalOffset;
             value =  _s.UInt64(name, value, defaultValue);
             DoIndent();
-            // _tw.WriteLine("{0:X} {1} = {2} (0x{3:X}`{4:X8} UL)", offset, name, value, (value & 0xffffffff00000000UL) >> 32, value & 0xffffffffUL);
-            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} UL)", offset, name, value);
+            // _tw.Write("{0:X} {1} = {2} (0x{3:X}`{4:X8} UL)", offset, name, value, (value & 0xffffffff00000000UL) >> 32, value & 0xffffffffUL);
+            _tw.Write("{0:X} {1} = {2} (0x{2:X} UL)", offset, name, value);
             return value;
         }
 
@@ -155,10 +166,9 @@ namespace SerdesNet
         {
             var offset = LocalOffset;
             value =  _s.EnumU8(name, value);
-            var label = Enum.GetName(typeof(T), value);
             var uintValue = SerdesUtil.EnumToUInt(value);
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} uy) // {3}", offset, name, uintValue, label);
+            _tw.Write("{0:X} {1} = {2} (0x{2:X} uy) // {3}", offset, name, uintValue, value.ToString());
             return value;
         }
 
@@ -166,10 +176,9 @@ namespace SerdesNet
         {
             var offset = LocalOffset;
             value =  _s.EnumU16(name, value);
-            var label = Enum.GetName(typeof(T), value);
             var uintValue = SerdesUtil.EnumToUInt(value);
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} us) // {3}", offset, name, uintValue, label);
+            _tw.Write("{0:X} {1} = {2} (0x{2:X} us) // {3}", offset, name, uintValue, value.ToString());
             return value;
         }
 
@@ -177,10 +186,9 @@ namespace SerdesNet
         {
             var offset = LocalOffset;
             value =  _s.EnumU32(name, value);
-            var label = Enum.GetName(typeof(T), value);
             var uintValue = SerdesUtil.EnumToUInt(value);
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = {2} (0x{2:X} u) // {3}", offset, name, uintValue, label);
+            _tw.Write("{0:X} {1} = {2} (0x{2:X} u) // {3}", offset, name, uintValue, value.ToString());
             return value;
         }
 
@@ -189,20 +197,19 @@ namespace SerdesNet
             var offset = LocalOffset;
             value =  _s.Guid(name, value);
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = {2:B}", offset, name, value);
+            _tw.Write("{0:X} {1} = {2:B}", offset, name, value);
             return value;
         }
 
         public byte[] Bytes(string name, byte[] value, int n)
         {
-
             var offset = LocalOffset;
             value =  _s.Bytes(name, value, n);
             DoIndent();
             _tw.Write("{0:X} {1} = ", offset, name);
 
             if (n <= 16)
-                _tw.WriteLine(SerdesUtil.ConvertToHexString(value, n));
+                _tw.Write(SerdesUtil.ConvertToHexString(value, n));
             else
                 PrintByteArrayHex(value, n);
             return value;
@@ -221,7 +228,6 @@ namespace SerdesNet
                     _tw.Write(' ');
                     _tw.Write(sb.ToString());
                     sb.Clear();
-                    _tw.WriteLine();
                     DoIndent();
                     _tw.Write("{0:X4}: ", payloadOffset);
                 }
@@ -244,7 +250,6 @@ namespace SerdesNet
                 _tw.Write(sb.ToString());
             }
 
-            _tw.WriteLine();
             _indent -= 4;
         }
 
@@ -254,7 +259,7 @@ namespace SerdesNet
             var offset = LocalOffset;
             value =  _s.NullTerminatedString(name, value);
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = \"{2}\"", offset, name, value);
+            _tw.Write("{0:X} {1} = \"{2}\"", offset, name, value);
             return value;
         }
 
@@ -264,7 +269,7 @@ namespace SerdesNet
             var offset = LocalOffset;
             value = _s.FixedLengthString(name, value, length);
             DoIndent();
-            _tw.WriteLine("{0:X} {1} = \"{2}\"", offset, name, value);
+            _tw.Write("{0:X} {1} = \"{2}\"", offset, name, value);
 
             var bytes = _stringToBytes(value);
             if (bytes.Length > length + 1) throw new InvalidOperationException("Tried to write overlength string");
@@ -276,7 +281,7 @@ namespace SerdesNet
             var offset = LocalOffset;
             _s.RepeatU8(name, value, length);
             DoIndent();
-            _tw.WriteLine(
+            _tw.Write(
                 "{0:X} {1} = [{2} bytes (0x{2:X}) of 0x{3:X}]",
                 offset,
                 name,

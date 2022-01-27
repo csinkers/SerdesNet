@@ -27,7 +27,7 @@ namespace SerdesNet
         }
 
         public SerializerFlags Flags => SerializerFlags.Write;
-        public long BytesRemaining => long.MaxValue;
+        public long BytesRemaining => int.MaxValue;
         public void Comment(string msg) { }
         public void Begin(string name = null) { }
         public void End() { }
@@ -112,7 +112,7 @@ namespace SerdesNet
         {
             if (value != null && value.Length > 0)
                 _bw.Write(value, 0, n);
-            _offset += value?.Length ?? 0;
+            _offset += Math.Min(value?.Length ?? 0, n);
             DebugCheck();
             return value;
         }

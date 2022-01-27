@@ -13,7 +13,7 @@
     <PackageTags>serialisation serialization</PackageTags>
     <RepositoryUrl>https://github.com/CSinkers/SerdesNet</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
-    <Version>1.7.2</Version>
+    <Version>1.8.0</Version>
     <LangVersion>8</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>

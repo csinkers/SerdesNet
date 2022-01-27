@@ -20,7 +20,7 @@ namespace SerdesNet.Tests
 
             using var textStream = new MemoryStream();
             using var textWriter = new StreamWriter(textStream);
-            using var annotatingSerializer = new AnnotationFacadeSerializer(binarySerializer, textWriter, Encoding.ASCII.GetBytes);
+            using var annotatingSerializer = new AnnotationProxySerializer(binarySerializer, textWriter, Encoding.ASCII.GetBytes);
 
             action(annotatingSerializer);
 

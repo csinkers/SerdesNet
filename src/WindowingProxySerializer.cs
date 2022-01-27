@@ -7,13 +7,13 @@ namespace SerdesNet
     /// Delegates reading/writing to an underlying serializer while
     /// manipulating Offset and BytesRemaining to simulate a window of the underlying stream/buffer.
     /// </summary>
-    public class WindowingFacadeSerializer : ISerializer
+    public class WindowingProxySerializer : ISerializer
     {
         readonly ISerializer _s;
         readonly int? _size;
         readonly long _relativeOffset;
 
-        public WindowingFacadeSerializer(ISerializer s, int? size)
+        public WindowingProxySerializer(ISerializer s, int? size)
         {
             _s = s ?? throw new ArgumentNullException(nameof(s));
             _relativeOffset = _s.Offset;
