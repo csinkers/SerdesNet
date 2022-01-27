@@ -199,7 +199,7 @@ namespace SerdesNet.Tests
         public void OffsetTests()
         {
             Write(x => Assert.Equal(SerializerFlags.Write | SerializerFlags.Comments, x.Flags));
-            Write(x => Assert.Equal(long.MaxValue, x.BytesRemaining));
+            Write(x => Assert.Equal(int.MaxValue, x.BytesRemaining));
             Write(x => Assert.False(x.IsComplete()));
 
             static void Block1(ISerializer s)
