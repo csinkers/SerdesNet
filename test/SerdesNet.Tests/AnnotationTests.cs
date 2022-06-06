@@ -165,9 +165,9 @@ namespace SerdesNet.Tests
         [Fact]
         public void RepeatTest()
         {
-            Assert.Equal("0 name = [4 bytes (0x4) of 0x0]", Write(s => s.RepeatU8("name", 0, 4)));
-            Assert.Equal("0 name = [4 bytes (0x4) of 0x1]", Write(s => s.RepeatU8("name", 1, 4)));
-            Assert.Equal("0 name = [1 bytes (0x1) of 0x1]", Write(s => s.RepeatU8("name", 1, 1)));
+            Assert.Equal("0 name = [4 bytes (0x4) of 0x0]", Write(s => s.Pad("name", 4, 0)));
+            Assert.Equal("0 name = [4 bytes (0x4) of 0x1]", Write(s => s.Pad("name", 4, 1)));
+            Assert.Equal("0 name = [1 bytes (0x1) of 0x1]", Write(s => s.Pad("name", 1, 1)));
         }
 
         [Fact]
@@ -200,7 +200,7 @@ namespace SerdesNet.Tests
         {
             Write(x => Assert.Equal(SerializerFlags.Write | SerializerFlags.Comments, x.Flags));
             Write(x => Assert.Equal(int.MaxValue, x.BytesRemaining));
-            Write(x => Assert.False(x.IsComplete()));
+            Write(x => Assert.NotEqual(0, x.BytesRemaining));
 
             static void Block1(ISerializer s)
             {

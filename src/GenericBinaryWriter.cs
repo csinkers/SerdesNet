@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 
@@ -12,7 +11,6 @@ namespace SerdesNet
         readonly Action _disposeAction;
         readonly Func<string, byte[]> _stringToBytes;
         readonly BinaryWriter _bw;
-        long _offset;
 
         public GenericBinaryWriter(
             BinaryWriter bw,
@@ -28,83 +26,67 @@ namespace SerdesNet
 
         public SerializerFlags Flags => SerializerFlags.Write;
         public long BytesRemaining => int.MaxValue;
-        public void Comment(string msg) { }
+        public void Comment(string msg, bool inline) { }
         public void Begin(string name = null) { }
         public void End() { }
         public void NewLine() { }
-        public void Check() => Assert(_offset == _bw.BaseStream.Position, "Mismatch between internal offset and stream position");
-        public bool IsComplete() => false;
-        public T Object<T>(string name, T value, Func<int, T, ISerializer, T> serdes) => serdes(0, value, this);
-        public T Object<T, TContext>(string name, T value, TContext context, Func<int, T, TContext, ISerializer, T> serdes) => serdes(0, value, context, this);
-        public void Object(string name, Action<ISerializer> serdes) => serdes(this);
 
-        public TMemory Transform<TPersistent, TMemory>(
-                string name,
-                TMemory value,
-                Func<string, TPersistent, ISerializer, TPersistent> serializer,
-                IConverter<TPersistent, TMemory> converter) =>
-            converter.FromNumeric(serializer(name, converter.ToNumeric(value), this));
-
-        public T TransformEnumU8<T>(string name, T value, IConverter<byte, T> converter)
-            => converter.FromNumeric(UInt8(name, converter.ToNumeric(value)));
-        public T TransformEnumU16<T>(string name, T value, IConverter<ushort, T> converter)
-            => converter.FromNumeric(UInt16(name, converter.ToNumeric(value)));
-        public T TransformEnumU32<T>(string name, T value, IConverter<uint, T> converter)
-            => converter.FromNumeric(UInt32(name, converter.ToNumeric(value)));
-
-        public long Offset
-        {
-            get
-            {
-                Assert(_offset == _bw.BaseStream.Position);
-                return _offset;
-            }
-        }
+        public long Offset => _bw.BaseStream.Position;
 
         public void Seek(long newOffset)
         {
             _bw.Seek((int)newOffset, SeekOrigin.Begin);
-            _offset = newOffset;
         }
 
-        public void Pad(int bytes) => RepeatU8(null, 0, bytes);
-        public sbyte Int8(string name, sbyte value, sbyte _ = 0) { _bw.Write(value); _offset += 1L; DebugCheck(); return value; }
-        public short Int16(string name, short value, short _ = 0) { _bw.Write(value); _offset += 2L; DebugCheck(); return value; }
-        public int Int32(string name, int value, int _ = 0) { _bw.Write(value); _offset += 4L; DebugCheck(); return value; }
-        public long Int64(string name, long value, long _ = 0) { _bw.Write(value); _offset += 8L; DebugCheck(); return value; }
-        public byte UInt8(string name, byte value, byte _ = 0) { _bw.Write(value); _offset += 1L; DebugCheck(); return value; }
-        public ushort UInt16(string name, ushort value, ushort _ = 0) { _bw.Write(value); _offset += 2L; DebugCheck(); return value; }
-        public uint UInt32(string name, uint value, uint _ = 0) { _bw.Write(value); _offset += 4L; DebugCheck(); return value; }
-        public ulong UInt64(string name, ulong value, ulong _ = 0) { _bw.Write(value); _offset += 8L; DebugCheck(); return value; }
+        public void Pad(int bytes, byte value) => Pad(null, bytes, value);
+        public void Pad(string name, int count, byte value)
+        {
+            for (int i = 0; i < count; i++)
+                _bw.Write(value);
+        }
+
+        public sbyte Int8(int n, sbyte value, sbyte _ = 0) { _bw.Write(value);  return value; }
+        public short Int16(int n, short value, short _ = 0) { _bw.Write(value);  return value; }
+        public int Int32(int n, int value, int _ = 0) { _bw.Write(value);  return value; }
+        public long Int64(int n, long value, long _ = 0) { _bw.Write(value);  return value; }
+        public byte UInt8(int n, byte value, byte _ = 0) { _bw.Write(value);  return value; }
+        public ushort UInt16(int n, ushort value, ushort _ = 0) { _bw.Write(value);  return value; }
+        public uint UInt32(int n, uint value, uint _ = 0) { _bw.Write(value);  return value; }
+        public ulong UInt64(int n, ulong value, ulong _ = 0) { _bw.Write(value);  return value; }
+
+        public sbyte Int8(string name, sbyte value, sbyte _ = 0) { _bw.Write(value);  return value; }
+        public short Int16(string name, short value, short _ = 0) { _bw.Write(value);  return value; }
+        public int Int32(string name, int value, int _ = 0) { _bw.Write(value);  return value; }
+        public long Int64(string name, long value, long _ = 0) { _bw.Write(value);  return value; }
+        public byte UInt8(string name, byte value, byte _ = 0) { _bw.Write(value);  return value; }
+        public ushort UInt16(string name, ushort value, ushort _ = 0) { _bw.Write(value);  return value; }
+        public uint UInt32(string name, uint value, uint _ = 0) { _bw.Write(value);  return value; }
+        public ulong UInt64(string name, ulong value, ulong _ = 0) { _bw.Write(value);  return value; }
+
+        public T EnumU8<T>(int n, T value) where T : unmanaged, Enum => EnumU8(null, value);
         public T EnumU8<T>(string name, T value) where T : unmanaged, Enum
         {
             _bw.Write(SerdesUtil.EnumToByte(value));
-            _offset += 1L;
-            DebugCheck();
             return value;
         }
 
+        public T EnumU16<T>(int n, T value) where T : unmanaged, Enum => EnumU16(null, value);
         public T EnumU16<T>(string name, T value) where T : unmanaged, Enum
         {
             _bw.Write(SerdesUtil.EnumToUShort(value));
-            _offset += 2L;
-            DebugCheck();
             return value;
         }
 
+        public T EnumU32<T>(int n, T value) where T : unmanaged, Enum => EnumU32(null, value);
         public T EnumU32<T>(string name, T value) where T : unmanaged, Enum
         {
             _bw.Write(SerdesUtil.EnumToUInt(value));
-            _offset += 4L;
-            DebugCheck();
             return value;
         }
 
         public Guid Guid(string name, Guid value)
         {
             _bw.Write(value.ToByteArray());
-            _offset += 16L;
-            DebugCheck();
             return value;
         }
 
@@ -112,8 +94,6 @@ namespace SerdesNet
         {
             if (value != null && value.Length > 0)
                 _bw.Write(value, 0, n);
-            _offset += Math.Min(value?.Length ?? 0, n);
-            DebugCheck();
             return value;
         }
 
@@ -123,41 +103,29 @@ namespace SerdesNet
             var bytes = _stringToBytes(value);
             _bw.Write(bytes);
             _bw.Write((byte)0);
-            _offset += bytes.Length + 1; // add 2 bytes for the null terminator
-            DebugCheck();
             return value;
         }
 
         public string FixedLengthString(string name, string value, int length)
         {
             value ??= string.Empty;
-            var bytes = _stringToBytes(value ?? "");
+            var bytes = _stringToBytes(value);
             if (bytes.Length > length + 1) _assertionFailed("Tried to write over-length string");
             _bw.Write(bytes);
             for (int i = bytes.Length; i < length; i++)
                 _bw.Write((byte)0);
-            _offset += length; // Pad out to the full length
-            DebugCheck();
             return value;
-        }
-
-        public void RepeatU8(string name, byte v, int length)
-        {
-            for (int i = 0; i < length; i++)
-                _bw.Write(v);
-            _offset += length;
-            DebugCheck();
         }
 
         public IList<TTarget> List<TTarget>(
             string name, IList<TTarget> list, int count,
-            Func<int, TTarget, ISerializer, TTarget> serializer,
+            SerdesMethod<TTarget> serializer,
             Func<int, IList<TTarget>> initialiser = null)
             => List(name, list, count, 0, serializer, initialiser);
 
         public IList<TTarget> List<TTarget, TContext>(
             string name, IList<TTarget> list, TContext context, int count,
-            Func<int, TTarget, TContext, ISerializer, TTarget> serializer,
+            SerdesContextMethod<TTarget, TContext> serializer,
             Func<int, IList<TTarget>> initialiser = null)
             => List(name, list, context, count, 0, serializer, initialiser);
 
@@ -166,13 +134,12 @@ namespace SerdesNet
             IList<TTarget> list,
             int count,
             int offset,
-            Func<int, TTarget, ISerializer, TTarget> serializer,
+            SerdesMethod<TTarget> serializer,
             Func<int, IList<TTarget>> initialiser = null)
         {
-            list = list ?? initialiser?.Invoke(count) ?? new TTarget[count];
+            list ??= initialiser?.Invoke(count) ?? new TTarget[count];
             for (int i = offset; i < count + offset; i++)
                 serializer(i, list[i], this);
-            DebugCheck();
             return list;
         }
 
@@ -182,13 +149,12 @@ namespace SerdesNet
             TContext context,
             int count,
             int offset,
-            Func<int, TTarget, TContext, ISerializer, TTarget> serializer,
+            SerdesContextMethod<TTarget, TContext> serializer,
             Func<int, IList<TTarget>> initialiser = null)
         {
-            list = list ?? initialiser?.Invoke(count) ?? new TTarget[count];
+            list ??= initialiser?.Invoke(count) ?? new TTarget[count];
             for (int i = offset; i < count + offset; i++)
                 serializer(i, list[i], context, this);
-            DebugCheck();
             return list;
         }
 
@@ -208,7 +174,5 @@ namespace SerdesNet
                 _disposeAction?.Invoke();
         }
         public void Dispose() => Dispose(true);
-
-        [Conditional("DEBUG")] void DebugCheck() => Check();
     }
 }

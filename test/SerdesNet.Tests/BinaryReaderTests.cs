@@ -187,15 +187,15 @@ namespace SerdesNet.Tests
         [Fact]
         public void RepeatTest()
         {
-            Read(new byte[] { 0, 0, 0, 0 }).RepeatU8("", 0, 4);
-            Read(new byte[] { 1, 1, 1, 1 }).RepeatU8("", 1, 4);
-            Read(new byte[] { 1, 1, 1, 1 }).RepeatU8("", 1, 1);
+            Read(new byte[] { 0, 0, 0, 0 }).Pad("", 4);
+            Read(new byte[] { 1, 1, 1, 1 }).Pad("", 4, 1);
+            Read(new byte[] { 1, 1, 1, 1 }).Pad("", 1, 1);
             Assert.Throws<InvalidOperationException>(() =>
                 Read(new byte[] { 0, 0, 1, 0 })
-                 .RepeatU8("", 0, 4));
+                 .Pad("", 4));
             Assert.Throws<EndOfStreamException>(() =>
                 Read(new byte[] { 0, 0, 0, 0 })
-                 .RepeatU8("", 0, 5));
+                 .Pad("", 5));
         }
 
         [Fact]
@@ -244,10 +244,10 @@ namespace SerdesNet.Tests
             Assert.Equal(0, s.Offset);
             Assert.Equal(0x706050403020100uL, s.UInt64("", 0));
             Assert.Equal(8, s.Offset);
-            Assert.True(s.IsComplete());
+            Assert.Equal(0, s.BytesRemaining);
 
             s.Seek(0);
-            Assert.False(s.IsComplete());
+            Assert.NotEqual(0, s.BytesRemaining);
         }
 
         [Fact]
@@ -383,32 +383,32 @@ namespace SerdesNet.Tests
         public void TransformTests()
         {
             var s = Read(new byte[] { 0, 1, 2, 255, 254 });
-            Assert.Null(s.Transform<byte, byte?>("", 0, S.UInt8, ZeroToNullConverter.Instance));
-            Assert.Equal((byte?)0, s.Transform<byte, byte?>("", 0, S.UInt8, ZeroToNullConverter.Instance));
-            Assert.Equal((byte?)1, s.Transform<byte, byte?>("", 0, S.UInt8, ZeroToNullConverter.Instance));
-            Assert.Equal((byte?)byte.MaxValue-1, s.Transform<byte, byte?>("", 0, S.UInt8, ZeroToNullConverter.Instance));
-            Assert.Equal((byte?)byte.MaxValue-2, s.Transform<byte, byte?>("", 0, S.UInt8, ZeroToNullConverter.Instance));
+            Assert.Null(s.Transform<byte, byte?>(0, 0, S.UInt8, ZeroToNullConverter.Instance));
+            Assert.Equal((byte?)0, s.Transform<byte, byte?>(0, 0, S.UInt8, ZeroToNullConverter.Instance));
+            Assert.Equal((byte?)1, s.Transform<byte, byte?>(0, 0, S.UInt8, ZeroToNullConverter.Instance));
+            Assert.Equal((byte?)byte.MaxValue-1, s.Transform<byte, byte?>(0, 0, S.UInt8, ZeroToNullConverter.Instance));
+            Assert.Equal((byte?)byte.MaxValue-2, s.Transform<byte, byte?>(0, 0, S.UInt8, ZeroToNullConverter.Instance));
 
             s.Seek(0);
-            Assert.Equal((byte?)0, s.Transform<byte, byte?>("", 0, S.UInt8, MaxToNullConverter.Instance));
-            Assert.Equal((byte?)1, s.Transform<byte, byte?>("", 0, S.UInt8, MaxToNullConverter.Instance));
-            Assert.Equal((byte?)2, s.Transform<byte, byte?>("", 0, S.UInt8, MaxToNullConverter.Instance));
-            Assert.Null(s.Transform<byte, byte?>("", 0, S.UInt8, MaxToNullConverter.Instance));
-            Assert.Equal((byte?)byte.MaxValue-1, s.Transform<byte, byte?>("", 0, S.UInt8, MaxToNullConverter.Instance));
+            Assert.Equal((byte?)0, s.Transform<byte, byte?>(0, 0, S.UInt8, MaxToNullConverter.Instance));
+            Assert.Equal((byte?)1, s.Transform<byte, byte?>(0, 0, S.UInt8, MaxToNullConverter.Instance));
+            Assert.Equal((byte?)2, s.Transform<byte, byte?>(0, 0, S.UInt8, MaxToNullConverter.Instance));
+            Assert.Null(s.Transform<byte, byte?>(0, 0, S.UInt8, MaxToNullConverter.Instance));
+            Assert.Equal((byte?)byte.MaxValue-1, s.Transform<byte, byte?>(0, 0, S.UInt8, MaxToNullConverter.Instance));
 
             s = Read(new byte[] { 0, 0, 1, 0, 2, 0, 255, 255, 254, 255 });
-            Assert.Null(s.Transform<ushort, ushort?>("", 0, S.UInt16, ZeroToNullConverter.Instance));
-            Assert.Equal((ushort?)0, s.Transform<ushort, ushort?>("", 0, S.UInt16, ZeroToNullConverter.Instance));
-            Assert.Equal((ushort?)1, s.Transform<ushort, ushort?>("", 0, S.UInt16, ZeroToNullConverter.Instance));
-            Assert.Equal((ushort?)ushort.MaxValue-1, s.Transform<ushort, ushort?>("", 0, S.UInt16, ZeroToNullConverter.Instance));
-            Assert.Equal((ushort?)ushort.MaxValue-2, s.Transform<ushort, ushort?>("", 0, S.UInt16, ZeroToNullConverter.Instance));
+            Assert.Null(s.Transform<ushort, ushort?>(0, 0, S.UInt16, ZeroToNullConverter.Instance));
+            Assert.Equal((ushort?)0, s.Transform<ushort, ushort?>(0, 0, S.UInt16, ZeroToNullConverter.Instance));
+            Assert.Equal((ushort?)1, s.Transform<ushort, ushort?>(0, 0, S.UInt16, ZeroToNullConverter.Instance));
+            Assert.Equal((ushort?)ushort.MaxValue-1, s.Transform<ushort, ushort?>(0, 0, S.UInt16, ZeroToNullConverter.Instance));
+            Assert.Equal((ushort?)ushort.MaxValue-2, s.Transform<ushort, ushort?>(0, 0, S.UInt16, ZeroToNullConverter.Instance));
 
             s.Seek(0);
-            Assert.Equal((ushort?)0, s.Transform<ushort, ushort?>("", 0, S.UInt16, MaxToNullConverter.Instance));
-            Assert.Equal((ushort?)1, s.Transform<ushort, ushort?>("", 0, S.UInt16, MaxToNullConverter.Instance));
-            Assert.Equal((ushort?)2, s.Transform<ushort, ushort?>("", 0, S.UInt16, MaxToNullConverter.Instance));
-            Assert.Null(s.Transform<ushort, ushort?>("", 0, S.UInt16, MaxToNullConverter.Instance));
-            Assert.Equal((ushort?)ushort.MaxValue-1, s.Transform<ushort, ushort?>("", 0, S.UInt16, MaxToNullConverter.Instance));
+            Assert.Equal((ushort?)0, s.Transform<ushort, ushort?>(0, 0, S.UInt16, MaxToNullConverter.Instance));
+            Assert.Equal((ushort?)1, s.Transform<ushort, ushort?>(0, 0, S.UInt16, MaxToNullConverter.Instance));
+            Assert.Equal((ushort?)2, s.Transform<ushort, ushort?>(0, 0, S.UInt16, MaxToNullConverter.Instance));
+            Assert.Null(s.Transform<ushort, ushort?>(0, 0, S.UInt16, MaxToNullConverter.Instance));
+            Assert.Equal((ushort?)ushort.MaxValue-1, s.Transform<ushort, ushort?>(0, 0, S.UInt16, MaxToNullConverter.Instance));
 
             s = Read(new byte[]
             {
@@ -418,18 +418,18 @@ namespace SerdesNet.Tests
                 255,255,255,255,
                 254,255,255,255
             });
-            Assert.Null(s.Transform<uint, uint?>("", 0, S.UInt32, ZeroToNullConverter.Instance));
-            Assert.Equal((uint?)0, s.Transform<uint, uint?>("", 0, S.UInt32, ZeroToNullConverter.Instance));
-            Assert.Equal((uint?)1, s.Transform<uint, uint?>("", 0, S.UInt32, ZeroToNullConverter.Instance));
-            Assert.Equal((uint?)uint.MaxValue-1, s.Transform<uint, uint?>("", 0, S.UInt32, ZeroToNullConverter.Instance));
-            Assert.Equal((uint?)uint.MaxValue-2, s.Transform<uint, uint?>("", 0, S.UInt32, ZeroToNullConverter.Instance));
+            Assert.Null(s.Transform<uint, uint?>(0, 0, S.UInt32, ZeroToNullConverter.Instance));
+            Assert.Equal((uint?)0, s.Transform<uint, uint?>(0, 0, S.UInt32, ZeroToNullConverter.Instance));
+            Assert.Equal((uint?)1, s.Transform<uint, uint?>(0, 0, S.UInt32, ZeroToNullConverter.Instance));
+            Assert.Equal((uint?)uint.MaxValue-1, s.Transform<uint, uint?>(0, 0, S.UInt32, ZeroToNullConverter.Instance));
+            Assert.Equal((uint?)uint.MaxValue-2, s.Transform<uint, uint?>(0, 0, S.UInt32, ZeroToNullConverter.Instance));
 
             s.Seek(0);
-            Assert.Equal((uint?)0, s.Transform<uint, uint?>("", 0, S.UInt32, MaxToNullConverter.Instance));
-            Assert.Equal((uint?)1, s.Transform<uint, uint?>("", 0, S.UInt32, MaxToNullConverter.Instance));
-            Assert.Equal((uint?)2, s.Transform<uint, uint?>("", 0, S.UInt32, MaxToNullConverter.Instance));
-            Assert.Null(s.Transform<uint, uint?>("", 0, S.UInt32, MaxToNullConverter.Instance));
-            Assert.Equal((uint?)uint.MaxValue-1, s.Transform<uint, uint?>("", 0, S.UInt32, MaxToNullConverter.Instance));
+            Assert.Equal((uint?)0, s.Transform<uint, uint?>(0, 0, S.UInt32, MaxToNullConverter.Instance));
+            Assert.Equal((uint?)1, s.Transform<uint, uint?>(0, 0, S.UInt32, MaxToNullConverter.Instance));
+            Assert.Equal((uint?)2, s.Transform<uint, uint?>(0, 0, S.UInt32, MaxToNullConverter.Instance));
+            Assert.Null(s.Transform<uint, uint?>(0, 0, S.UInt32, MaxToNullConverter.Instance));
+            Assert.Equal((uint?)uint.MaxValue-1, s.Transform<uint, uint?>(0, 0, S.UInt32, MaxToNullConverter.Instance));
         }
 
         [Fact]
@@ -437,29 +437,6 @@ namespace SerdesNet.Tests
         {
             var ex = Read(Example.ExampleBuffer).Object<Example>("", null, Example.Serdes);
             ex.Verify(m => throw new InvalidOperationException(m));
-        }
-
-        [Fact]
-        public void CheckTests()
-        {
-            var ms = new MemoryStream(new byte[] { 1, 2, 3, 4, 5 });
-            var br = new BinaryReader(ms);
-            var s = new GenericBinaryReader(
-                br,
-                3,
-                Encoding.UTF8.GetString,
-                m => throw new InvalidOperationException(m));
-
-            s.UInt8("", 0);  // 0->1
-            s.Check();
-            br.ReadByte(); // 1->2 (stream only)
-            Assert.Throws<InvalidOperationException>(() => s.Check());
-            s.Seek(ms.Position); // 1->2 (s only)
-            s.Check();
-            s.UInt8("", 0); // 2->3
-            s.Check();
-            s.UInt8("", 0); // 3->4, too far!
-            Assert.Throws<InvalidOperationException>(() => s.Check());
         }
     }
 }

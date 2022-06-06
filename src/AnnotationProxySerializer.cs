@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -37,26 +38,40 @@ namespace SerdesNet
         public void Seek(long offset)
         {
             DoIndent();
-             _tw.Write("{1:X} Seek to {0:X} for overwrite", offset, LocalOffset);
+            _tw.Write("{1:X} Seek to {0:X} for overwrite", offset, LocalOffset);
             _s.Seek(offset);
         }
 
-        public void Check() => _s.Check();
         public void Assert(bool condition, string message) => _s.Assert(condition, message);
-        public bool IsComplete() => _s.IsComplete();
-        public void Pad(int bytes) => _s.Pad(bytes); // Don't write anything to the annotation stream for padding
-
-        string _indentString = "";
+        public void Pad(int length, byte value) => _s.Pad(length, value); // Don't write anything to the annotation stream for unnamed padding
+        public void Pad(string name, int length, byte value)
+        {
+            var offset = LocalOffset;
+            _s.Pad(name, length, value);
+            DoIndent();
+            _tw.Write(
+                "{0:X} {1} = [{2} bytes (0x{2:X}) of 0x{3:X}]",
+                offset,
+                name,
+                length,
+                value);
+        }
         void DoIndent()
         {
-            if (_indent != _indentString.Length)
-                _indentString = new string(' ', _indent);
-
             _tw.WriteLine();
-            _tw.Write(_indentString);
+            _tw.Write(new string(' ', _indent));
         }
 
-        public void Comment(string msg) { _tw.Write(" // {0}", msg); }
+        public void Comment(string msg, bool inline)
+        {
+            if (!inline)
+            {
+                DoIndent();
+                _tw.Write("// {0}", msg);
+            }
+            else _tw.Write(" // {0}", msg);
+        }
+
         public void Begin(string name)
         {
             DoIndent();
@@ -74,20 +89,77 @@ namespace SerdesNet
         }
 
         public void NewLine() => _tw.WriteLine();
+        public sbyte Int8(int n, sbyte value, sbyte defaultValue)
+        {
+            var offset = LocalOffset;
+            value =  _s.Int8(n, value, defaultValue);
+            DoIndent();
+            _tw.Write("{0:X} {1} = {2} (0x{2:X} y)", offset, n, value);
+            return value;
+        }
 
-        public TMemory Transform<TPersistent, TMemory>(
-                string name,
-                TMemory value,
-                Func<string, TPersistent, ISerializer, TPersistent> serializer,
-                IConverter<TPersistent, TMemory> converter) =>
-            converter.FromNumeric(serializer(name, converter.ToNumeric(value), this));
+        public short Int16(int n, short value, short defaultValue)
+        {
+            var offset = LocalOffset;
+            value =  _s.Int16(n, value, defaultValue);
+            DoIndent();
+            _tw.Write("{0:X} {1} = {2} (0x{2:X} s)", offset, n, value);
+            return value;
+        }
 
-        public T TransformEnumU8<T>(string name, T value, IConverter<byte, T> converter) 
-            => converter.FromNumeric(UInt8(name, converter.ToNumeric(value), 0));
-        public T TransformEnumU16<T>(string name, T value, IConverter<ushort, T> converter)
-            => converter.FromNumeric(UInt16(name, converter.ToNumeric(value), 0));
-        public T TransformEnumU32<T>(string name, T value, IConverter<uint, T> converter) 
-            => converter.FromNumeric(UInt32(name, converter.ToNumeric(value), 0));
+        public int Int32(int n, int value, int defaultValue)
+        {
+            var offset = LocalOffset;
+            value =  _s.Int32(n, value, defaultValue);
+            DoIndent();
+            _tw.Write("{0:X} {1} = {2} (0x{2:X})", offset, n, value);
+            return value;
+        }
+
+        public long Int64(int n, long value, long defaultValue)
+        {
+            var offset = LocalOffset;
+            value =  _s.Int64(n, value, defaultValue);
+            DoIndent();
+            _tw.Write("{0:X} {1} = {2} (0x{2:X} L)", offset, n, value);
+            return value;
+        }
+
+        public byte UInt8(int n, byte value, byte defaultValue)
+        {
+            var offset = LocalOffset;
+            value =  _s.UInt8(n, value, defaultValue);
+            DoIndent();
+            _tw.Write("{0:X} {1} = {2} (0x{2:X} uy)", offset, n, value);
+            return value;
+        }
+
+        public ushort UInt16(int n, ushort value, ushort defaultValue)
+        {
+            var offset = LocalOffset;
+            value =  _s.UInt16(n, value, defaultValue);
+            DoIndent();
+            _tw.Write("{0:X} {1} = {2} (0x{2:X} us)", offset, n, value);
+            return value;
+        }
+
+        public uint UInt32(int n, uint value, uint defaultValue)
+        {
+            var offset = LocalOffset;
+            value =  _s.UInt32(n, value, defaultValue);
+            DoIndent();
+            _tw.Write("{0:X} {1} = {2} (0x{2:X} u)", offset, n, value);
+            return value;
+        }
+
+        public ulong UInt64(int n, ulong value, ulong defaultValue)
+        {
+            var offset = LocalOffset;
+            value =  _s.UInt64(n, value, defaultValue);
+            DoIndent();
+            _tw.Write("{0:X} {1} = {2} (0x{2:X} UL)", offset, n, value);
+            return value;
+        }
 
         public sbyte Int8(string name, sbyte value, sbyte defaultValue)
         {
@@ -162,6 +234,8 @@ namespace SerdesNet
             return value;
         }
 
+        public T EnumU8<T>(int n, T value) where T : unmanaged, Enum
+            => EnumU8(n.ToString(CultureInfo.InvariantCulture), value);
         public T EnumU8<T>(string name, T value) where T : unmanaged, Enum
         {
             var offset = LocalOffset;
@@ -172,6 +246,8 @@ namespace SerdesNet
             return value;
         }
 
+        public T EnumU16<T>(int n, T value) where T : unmanaged, Enum
+            => EnumU16(n.ToString(CultureInfo.InvariantCulture), value);
         public T EnumU16<T>(string name, T value) where T : unmanaged, Enum
         {
             var offset = LocalOffset;
@@ -182,6 +258,8 @@ namespace SerdesNet
             return value;
         }
 
+        public T EnumU32<T>(int n, T value) where T : unmanaged, Enum
+            => EnumU32(n.ToString(CultureInfo.InvariantCulture), value);
         public T EnumU32<T>(string name, T value) where T : unmanaged, Enum
         {
             var offset = LocalOffset;
@@ -276,52 +354,15 @@ namespace SerdesNet
             return value;
         }
 
-        public void RepeatU8(string name, byte value, int length)
-        {
-            var offset = LocalOffset;
-            _s.RepeatU8(name, value, length);
-            DoIndent();
-            _tw.Write(
-                "{0:X} {1} = [{2} bytes (0x{2:X}) of 0x{3:X}]",
-                offset,
-                name,
-                length,
-                value
-            );
-        }
-
-        public T Object<T>(string name, T value, Func<int, T, ISerializer, T> serdes)
-        {
-            Begin(name);
-            var result = serdes(0, value, this);
-            End();
-            return result;
-        }
-
-        public T Object<T, TContext>(string name, T value, TContext context, Func<int, T, TContext, ISerializer, T> serdes)
-        {
-            Begin(name);
-            var result = serdes(0, value, context, this);
-            End();
-            return result;
-        }
-
-        public void Object(string name, Action<ISerializer> serdes)
-        {
-            Begin(name);
-            serdes(this);
-            End();
-        }
-
         public IList<TTarget> List<TTarget>(
             string name, IList<TTarget> list, int count,
-            Func<int, TTarget, ISerializer, TTarget> serializer,
+            SerdesMethod<TTarget> serializer,
             Func<int, IList<TTarget>> initialiser = null)
             => List(name, list, count, 0, serializer, initialiser);
 
         public IList<TTarget> List<TTarget, TContext>(
             string name, IList<TTarget> list, TContext context, int count,
-            Func<int, TTarget, TContext, ISerializer, TTarget> serializer,
+            SerdesContextMethod<TTarget, TContext> serializer,
             Func<int, IList<TTarget>> initialiser = null)
             => List(name, list, context, count, 0, serializer, initialiser);
 
@@ -330,7 +371,7 @@ namespace SerdesNet
             IList<TTarget> list,
             int count,
             int offset,
-            Func<int, TTarget, ISerializer, TTarget> serializer,
+            SerdesMethod<TTarget> serializer,
             Func<int, IList<TTarget>> initialiser = null)
         {
             Begin(name);
@@ -346,7 +387,7 @@ namespace SerdesNet
             TContext context,
             int count,
             int offset,
-            Func<int, TTarget, TContext, ISerializer, TTarget> serializer,
+            SerdesContextMethod<TTarget, TContext> serializer,
             Func<int, IList<TTarget>> initialiser = null)
         {
             Begin(name);

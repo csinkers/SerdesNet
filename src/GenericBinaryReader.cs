@@ -12,7 +12,6 @@ namespace SerdesNet
         readonly Func<byte[], string> _bytesToString;
         readonly BinaryReader _br;
         readonly long _maxOffset;
-        long _offset;
 
         public GenericBinaryReader(
             BinaryReader br,
@@ -25,78 +24,73 @@ namespace SerdesNet
             _assertionFailed = assertionFailed;
             _disposeAction = disposeAction;
             _bytesToString = bytesToString ?? throw new ArgumentNullException(nameof(bytesToString));
-            _offset = br.BaseStream.Position;
-            _maxOffset = _offset + maxLength;
+            _maxOffset = Offset + maxLength;
         }
 
         public SerializerFlags Flags => SerializerFlags.Read;
-        public long BytesRemaining => _maxOffset - _offset;
-        public void Comment(string msg) { }
+        public long BytesRemaining => _maxOffset - Offset;
+        public void Comment(string msg, bool inline) { }
         public void Begin(string name = null) { }
         public void End() { }
         public void NewLine() { }
-        public long Offset { get { Check(); return _offset; } }
-
-        public void Check()
-        {
-            Assert(_offset == _br.BaseStream.Position);
-            Assert(_maxOffset >=  _br.BaseStream.Position, "Buffer overrun in binary reader");
-        }
-
-        public bool IsComplete() => _br.BaseStream.Position >= _maxOffset;
+        public long Offset => _br.BaseStream.Position;
 
         public void Seek(long newOffset)
         {
             _br.BaseStream.Seek(newOffset, SeekOrigin.Begin);
-            _offset = newOffset;
         }
 
-        public void Pad(int bytes) => RepeatU8(null, 0, bytes);
-        public sbyte Int8(string name, sbyte value, sbyte _ = 0) { _offset += 1L; return _br.ReadSByte(); }
-        public short Int16(string name, short value, short _ = 0) { _offset += 2L; return _br.ReadInt16(); }
-        public int Int32(string name, int value, int _ = 0) { _offset += 4L; return _br.ReadInt32(); }
-        public long Int64(string name, long value, long _ = 0) { _offset += 8L; return _br.ReadInt64(); }
-        public byte UInt8(string name, byte value, byte _ = 0) { _offset += 1L; return _br.ReadByte(); }
-        public ushort UInt16(string name, ushort value, ushort _ = 0) { _offset += 2L; return _br.ReadUInt16(); }
-        public uint UInt32(string name, uint value, uint _ = 0) { _offset += 4L; return _br.ReadUInt32(); }
-        public ulong UInt64(string name, ulong value, ulong _ = 0) { _offset += 8L; return _br.ReadUInt64(); }
-        public T EnumU8<T>(string name, T value) where T : unmanaged, Enum { _offset += 1L; return SerdesUtil.ByteToEnum<T>(_br.ReadByte()); }
-        public T EnumU16<T>(string name, T value) where T : unmanaged, Enum { _offset += 2L; return SerdesUtil.UShortToEnum<T>((_br.ReadUInt16())); }
-        public T EnumU32<T>(string name, T value) where T : unmanaged, Enum { _offset += 4L; return SerdesUtil.UIntToEnum<T>(_br.ReadUInt32()); }
+        public void Pad(int count, byte value) => Pad(null, count, value);
+        public void Pad(string name, int count, byte value)
+        {
+            var bytes = _br.ReadBytes(count);
+            if (bytes.Length < count)
+                throw new EndOfStreamException();
+
+            foreach (var b in bytes)
+                if (b != value)
+                    Assert(false, $"Unexpected value \"{b}\" found in repeating byte pattern (expected {value}");
+        }
+
+        public sbyte Int8(int n, sbyte value, sbyte _ = 0) => _br.ReadSByte();
+        public short Int16(int n, short value, short _ = 0) => _br.ReadInt16();
+        public int Int32(int n, int value, int _ = 0) => _br.ReadInt32();
+        public long Int64(int n, long value, long _ = 0) => _br.ReadInt64();
+        public byte UInt8(int n, byte value, byte _ = 0) => _br.ReadByte();
+        public ushort UInt16(int n, ushort value, ushort _ = 0) => _br.ReadUInt16();
+        public uint UInt32(int n, uint value, uint _ = 0) => _br.ReadUInt32();
+        public ulong UInt64(int n, ulong value, ulong _ = 0) => _br.ReadUInt64();
+
+        public sbyte Int8(string name, sbyte value, sbyte _ = 0) => _br.ReadSByte();
+        public short Int16(string name, short value, short _ = 0) => _br.ReadInt16();
+        public int Int32(string name, int value, int _ = 0) => _br.ReadInt32();
+        public long Int64(string name, long value, long _ = 0) => _br.ReadInt64();
+        public byte UInt8(string name, byte value, byte _ = 0) => _br.ReadByte();
+        public ushort UInt16(string name, ushort value, ushort _ = 0) => _br.ReadUInt16();
+        public uint UInt32(string name, uint value, uint _ = 0) => _br.ReadUInt32();
+        public ulong UInt64(string name, ulong value, ulong _ = 0) => _br.ReadUInt64();
+
+        public T EnumU8<T>(int n, T value) where T : unmanaged, Enum => SerdesUtil.ByteToEnum<T>(_br.ReadByte());
+        public T EnumU16<T>(int n, T value) where T : unmanaged, Enum => SerdesUtil.UShortToEnum<T>((_br.ReadUInt16()));
+        public T EnumU32<T>(int n, T value) where T : unmanaged, Enum => SerdesUtil.UIntToEnum<T>(_br.ReadUInt32());
+
+        public T EnumU8<T>(string name, T value) where T : unmanaged, Enum => SerdesUtil.ByteToEnum<T>(_br.ReadByte());
+        public T EnumU16<T>(string name, T value) where T : unmanaged, Enum => SerdesUtil.UShortToEnum<T>((_br.ReadUInt16()));
+        public T EnumU32<T>(string name, T value) where T : unmanaged, Enum => SerdesUtil.UIntToEnum<T>(_br.ReadUInt32());
 
         public Guid Guid(string name, Guid value)
         {
-            _offset += 16L;
             var bytes = _br.ReadBytes(16);
             if (bytes.Length < 16)
                 throw new EndOfStreamException();
             return new Guid(bytes);
         }
 
-        public T Object<T>(string name, T value, Func<int, T, ISerializer, T> serdes) => serdes(0, value, this);
-        public T Object<T, TContext>(string name, T value, TContext context, Func<int, T, TContext, ISerializer, T> serdes) => serdes(0, value, context, this);
-        public void Object(string name, Action<ISerializer> serdes) => serdes(this);
-
-        public TMemory Transform<TPersistent, TMemory>(
-                string name,
-                TMemory value,
-                Func<string, TPersistent, ISerializer, TPersistent> serializer,
-                IConverter<TPersistent, TMemory> converter) =>
-            converter.FromNumeric(serializer(name, converter.ToNumeric(value), this));
-
-        public T TransformEnumU8<T>(string name, T value, IConverter<byte, T> converter) 
-            => converter.FromNumeric(UInt8(name, converter.ToNumeric(value)));
-        public T TransformEnumU16<T>(string name, T value, IConverter<ushort, T> converter) 
-            => converter.FromNumeric(UInt16(name, converter.ToNumeric(value)));
-        public T TransformEnumU32<T>(string name, T value, IConverter<uint, T> converter) 
-            => converter.FromNumeric(UInt32(name, converter.ToNumeric(value)));
-
         public byte[] Bytes(string name, byte[] value, int n)
         {
             var v = _br.ReadBytes(n);
             if (v.Length < n)
                 throw new EndOfStreamException();
-            _offset += v.Length;
             return v;
         }
 
@@ -106,7 +100,6 @@ namespace SerdesNet
             for (;;)
             {
                 var b = _br.ReadByte();
-                _offset++;
                 if (b == 0)
                     break;
                 bytes.Add(b);
@@ -121,32 +114,18 @@ namespace SerdesNet
             if (bytes.Length < length)
                 throw new EndOfStreamException();
             var str = _bytesToString(bytes);
-            _offset += length;
-            Assert(_offset == _br.BaseStream.Position);
             return str.TrimEnd('\0');
-        }
-
-        public void RepeatU8(string name, byte v, int length)
-        {
-            var bytes = _br.ReadBytes(length);
-            if (bytes.Length < length)
-                throw new EndOfStreamException();
-
-            foreach (var b in bytes)
-                if (b != v)
-                    Assert(false, $"Unexpected value \"{b}\" found in repeating byte pattern (expected {v}");
-            _offset += length;
         }
 
         public IList<TTarget> List<TTarget>(
             string name, IList<TTarget> list, int count,
-            Func<int, TTarget, ISerializer, TTarget> serializer,
+            SerdesMethod<TTarget> serializer,
             Func<int, IList<TTarget>> initialiser = null)
             => List(name, list, count, 0, serializer, initialiser);
 
         public IList<TTarget> List<TTarget, TContext>(
             string name, IList<TTarget> list, TContext context, int count,
-            Func<int, TTarget, TContext, ISerializer, TTarget> serializer,
+            SerdesContextMethod<TTarget, TContext> serializer,
             Func<int, IList<TTarget>> initialiser = null)
             => List(name, list, context, count, 0, serializer, initialiser);
 
@@ -155,7 +134,7 @@ namespace SerdesNet
             IList<TTarget> list,
             int count,
             int offset,
-            Func<int, TTarget, ISerializer, TTarget> serdes,
+            SerdesMethod<TTarget> serdes,
             Func<int, IList<TTarget>> initialiser = null)
         {
             list ??= initialiser?.Invoke(count) ?? new List<TTarget>();
@@ -178,7 +157,7 @@ namespace SerdesNet
             TContext context,
             int count,
             int offset,
-            Func<int, TTarget, TContext, ISerializer, TTarget> serdes,
+            SerdesContextMethod<TTarget, TContext> serdes,
             Func<int, IList<TTarget>> initialiser = null)
         {
             list ??= initialiser?.Invoke(count) ?? new List<TTarget>();

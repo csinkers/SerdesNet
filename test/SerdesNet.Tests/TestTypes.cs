@@ -34,7 +34,7 @@ namespace SerdesNet.Tests
 
     public class Example
     {
-        public static byte[] ExampleBuffer = {
+        public static readonly byte[] ExampleBuffer = {
             255, 1, 254, 255, 2, 0, 
             253,255,255,255,
             3,0,0,0,
@@ -106,7 +106,7 @@ namespace SerdesNet.Tests
         public string     NullTerm   { get; private set; }
         public Guid       Guid       { get; private set; }
 
-        public static Example Serdes(int _, Example e, ISerializer s)
+        public static Example Serdes(string _, Example e, ISerializer s)
         {
             e ??= new Example();
             e.SByte      =    s.Int8(nameof(SByte), e.SByte);
