@@ -143,7 +143,7 @@ namespace SerdesNet.Tests
 
             Assert.Collection(
                 Read(new byte[] { 1, 2, 3 })
-                    .List("", null, 3, UInt8Serdes, x => new List<byte>()),
+                    .List("", null, 3, UInt8Serdes, _ => new List<byte>()),
                 x => Assert.Equal(1, x),
                 x => Assert.Equal(2, x),
                 x => Assert.Equal(3, x)
@@ -151,12 +151,12 @@ namespace SerdesNet.Tests
 
             Assert.Throws<EndOfStreamException>(() =>
                 Read(new byte[] { 1, 2, 3 })
-                    .List("", null, 4, UInt8Serdes, x => new List<byte>())
+                    .List("", null, 4, UInt8Serdes, _ => new List<byte>())
             );
 
             Assert.Collection(
                 Read(new byte[] { 1, 2, 3 })
-                    .List("", null, 3, 1, UInt8Serdes, x => new List<byte>()),
+                    .List("", null, 3, 1, UInt8Serdes, _ => new List<byte>()),
                 x => Assert.Equal(1, x),
                 x => Assert.Equal(1, x),
                 x => Assert.Equal(2, x),
@@ -166,7 +166,7 @@ namespace SerdesNet.Tests
             var l = new List<byte> { 5 };
             Assert.Collection(
                 Read(new byte[] { 1, 2, 3 })
-                    .List("", l, 3, 1, UInt8Serdes, x => throw new InvalidOperationException()),
+                    .List("", l, 3, 1, UInt8Serdes, _ => throw new InvalidOperationException()),
                 x => Assert.Equal(5, x),
                 x => Assert.Equal(1, x),
                 x => Assert.Equal(2, x),
@@ -176,7 +176,7 @@ namespace SerdesNet.Tests
             var a = new byte[4];
             Assert.Collection(
                 Read(new byte[] { 1, 2, 3 })
-                    .List("", a, 3, 1, UInt8Serdes, x => throw new InvalidOperationException()),
+                    .List("", a, 3, 1, UInt8Serdes, _ => throw new InvalidOperationException()),
                 x => Assert.Equal(0, x),
                 x => Assert.Equal(1, x),
                 x => Assert.Equal(2, x),
@@ -296,7 +296,7 @@ namespace SerdesNet.Tests
             var s = Read(new byte[] { 0, 1, 2, 3, 0xff });
             Assert.Collection(
                 s.List<ByteEnum?>("", null, 5,
-                    (i, v, s2) => s2.TransformEnumU8(
+                    (_, v, s2) => s2.TransformEnumU8(
                         "", v,
                         ZeroToNullConverter<ByteEnum>.Instance)),
                 x => Assert.Null(x),
@@ -309,7 +309,7 @@ namespace SerdesNet.Tests
             s.Seek(0);
             Assert.Collection(
                 s.List<ByteEnum?>("", null, 5,
-                    (i, v, s2) => s2.TransformEnumU8(
+                    (_, v, s2) => s2.TransformEnumU8(
                         "", v,
                         MaxToNullConverter<ByteEnum>.Instance)),
                 x => Assert.Equal(ByteEnum.None, x),
@@ -322,7 +322,7 @@ namespace SerdesNet.Tests
             s = Read(new byte[] {0, 0, 1, 0, 2, 0, 3, 0, 0xff, 0xff});
             Assert.Collection(
                 s.List<UShortEnum?>("", null, 5,
-                    (i, v, s2) => s2.TransformEnumU16(
+                    (_, v, s2) => s2.TransformEnumU16(
                         "", v,
                         ZeroToNullConverter<UShortEnum>.Instance)),
                 x => Assert.Null(x),
@@ -335,7 +335,7 @@ namespace SerdesNet.Tests
             s.Seek(0);
             Assert.Collection(
                 s.List<UShortEnum?>("", null, 5,
-                    (i, v, s2) => s2.TransformEnumU16(
+                    (_, v, s2) => s2.TransformEnumU16(
                         "", v,
                         MaxToNullConverter<UShortEnum>.Instance)),
                 x => Assert.Equal(UShortEnum.None, x),
@@ -355,7 +355,7 @@ namespace SerdesNet.Tests
             });
             Assert.Collection(
                 s.List<UIntEnum?>("", null, 5,
-                    (i, v, s2) => s2.TransformEnumU32(
+                    (_, v, s2) => s2.TransformEnumU32(
                         "", v,
                         ZeroToNullConverter<UIntEnum>.Instance)),
                 x => Assert.Null(x),
@@ -368,7 +368,7 @@ namespace SerdesNet.Tests
             s.Seek(0);
             Assert.Collection(
                 s.List<UIntEnum?>("", null, 5,
-                    (i, v, s2) => s2.TransformEnumU32(
+                    (_, v, s2) => s2.TransformEnumU32(
                         "", v,
                         MaxToNullConverter<UIntEnum>.Instance)),
                 x => Assert.Equal(UIntEnum.None, x),

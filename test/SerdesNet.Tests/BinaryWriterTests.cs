@@ -140,7 +140,7 @@ namespace SerdesNet.Tests
                         new byte[] { 1, 2, 3 },
                         3,
                         UInt8Serdes,
-                        x => throw new InvalidOperationException())));
+                        _ => throw new InvalidOperationException())));
 
             Assert.Equal(new byte[] { 1, 2, 3 },
                 Write(s => s.List(
@@ -149,7 +149,7 @@ namespace SerdesNet.Tests
                         3,
                         1,
                         UInt8Serdes,
-                        x => throw new InvalidOperationException())));
+                        _ => throw new InvalidOperationException())));
         }
 
         [Fact]
@@ -250,7 +250,7 @@ namespace SerdesNet.Tests
                     ByteEnum.Some,
                     ByteEnum.Both,
                     ByteEnum.AlmostAll,
-                }, 5, (i, v, s2) => s2.TransformEnumU8("", v, ZeroToNullConverter<ByteEnum>.Instance))));
+                }, 5, (_, v, s2) => s2.TransformEnumU8("", v, ZeroToNullConverter<ByteEnum>.Instance))));
 
             Assert.Equal(new byte[] { 0, 1, 2, 3, 0xff },
                 Write(s => s.List("", new[]
@@ -261,7 +261,7 @@ namespace SerdesNet.Tests
                     ByteEnum.Many,
                     (ByteEnum?)null
                 }, 5,
-                (i, v, s2) => s2.TransformEnumU8("", v, MaxToNullConverter<ByteEnum>.Instance))));
+                (_, v, s2) => s2.TransformEnumU8("", v, MaxToNullConverter<ByteEnum>.Instance))));
 
             Assert.Equal(new byte[] { 0, 0, 1, 0, 2, 0, 3, 0, 0xff, 0xff },
                 Write(s => s.List("", new[]
@@ -272,7 +272,7 @@ namespace SerdesNet.Tests
                     UShortEnum.Both,
                     UShortEnum.AlmostAll,
                 }, 5,
-                (i, v, s2) => s2.TransformEnumU16("", v, ZeroToNullConverter<UShortEnum>.Instance))));
+                (_, v, s2) => s2.TransformEnumU16("", v, ZeroToNullConverter<UShortEnum>.Instance))));
 
             Assert.Equal(new byte[] { 0, 0, 1, 0, 2, 0, 3, 0, 0xff, 0xff },
                 Write(s => s.List("", new[]
@@ -283,7 +283,7 @@ namespace SerdesNet.Tests
                     UShortEnum.Many,
                     (UShortEnum?)null
                 }, 5,
-                (i, v, s2) => s2.TransformEnumU16("", v, MaxToNullConverter<UShortEnum>.Instance)))
+                (_, v, s2) => s2.TransformEnumU16("", v, MaxToNullConverter<UShortEnum>.Instance)))
             );
 
             Assert.Equal(
@@ -303,7 +303,7 @@ namespace SerdesNet.Tests
                     UIntEnum.Both,
                     UIntEnum.AlmostAll,
                 }, 5,
-                (i, v, s2) => s2.TransformEnumU32("", v, ZeroToNullConverter<UIntEnum>.Instance))));
+                (_, v, s2) => s2.TransformEnumU32("", v, ZeroToNullConverter<UIntEnum>.Instance))));
 
             Assert.Equal(
                 new byte[]
@@ -321,7 +321,7 @@ namespace SerdesNet.Tests
                     UIntEnum.Both,
                     UIntEnum.Many,
                     (UIntEnum?)null
-                }, 5, (i, v, s2) => s2.TransformEnumU32("", v, MaxToNullConverter<UIntEnum>.Instance))));
+                }, 5, (_, v, s2) => s2.TransformEnumU32("", v, MaxToNullConverter<UIntEnum>.Instance))));
         }
 
         [Fact]

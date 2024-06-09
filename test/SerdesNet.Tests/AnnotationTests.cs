@@ -146,7 +146,7 @@ namespace SerdesNet.Tests
                         new byte[] { 1, 2, 3 },
                         3,
                         UInt8Serdes,
-                        x => throw new InvalidOperationException())));
+                        _ => throw new InvalidOperationException())));
 
             Assert.Equal(@"0 name: {
     0 1 = 1 (0x1 uy)
@@ -159,13 +159,13 @@ namespace SerdesNet.Tests
                         3,
                         1,
                         UInt8Serdes,
-                        x => throw new InvalidOperationException())));
+                        _ => throw new InvalidOperationException())));
         }
 
         [Fact]
         public void RepeatTest()
         {
-            Assert.Equal("0 name = [4 bytes (0x4) of 0x0]", Write(s => s.Pad("name", 4, 0)));
+            Assert.Equal("0 name = [4 bytes (0x4) of 0x0]", Write(s => s.Pad("name", 4)));
             Assert.Equal("0 name = [4 bytes (0x4) of 0x1]", Write(s => s.Pad("name", 4, 1)));
             Assert.Equal("0 name = [1 bytes (0x1) of 0x1]", Write(s => s.Pad("name", 1, 1)));
         }
