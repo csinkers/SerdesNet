@@ -154,6 +154,7 @@ namespace SerdesNet
             return ((x & 0xFF00FF00FF00FF00) >> 8) | ((x & 0x00FF00FF00FF00FF) << 8);
         }
 
+        // ReSharper disable InconsistentNaming
         public static short Int16BE(this ISerializer s, int n, short value) => SwapBytes16(s.Int16(n, SwapBytes16(value)));
         public static int   Int32BE(this ISerializer s, int n, int   value) => SwapBytes32(s.Int32(n, SwapBytes32(value)));
         public static long  Int64BE(this ISerializer s, int n, long  value) => SwapBytes64(s.Int64(n, SwapBytes64(value)));
@@ -181,6 +182,8 @@ namespace SerdesNet
 
         public static T EnumU32BE<T>(this ISerializer s, string name, T value)  where T : unmanaged, Enum
            => (T)(object)SwapBytes32(s.UInt32(name, SwapBytes32((uint)(object)value)));
+
+        // ReSharper restore InconsistentNaming
 
         public static T Object<T>(this ISerializer s, int n, T value, SerdesMethod<T> serdes)
         {
