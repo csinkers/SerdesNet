@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\SerdesNet.csproj" />
+    <ProjectReference Include="..\SerdesNet\SerdesNet.csproj" />
   </ItemGroup>
 
 </Project>
