@@ -1,12 +1,11 @@
 ﻿using System;
 
-namespace SerdesNet
+namespace SerdesNet;
+
+[Flags]
+public enum SerializerFlags
 {
-    [Flags]
-    public enum SerializerFlags
-    {
-        Read = 1,
-        Write = 2,
-        Comments = 4,
-    }
+    Read = 1,
+    Write = 2,
+    Comments = 4,
 }
