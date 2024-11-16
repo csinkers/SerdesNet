@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace SerdesNet
 {
-    public class GenericBinaryReader : ISerializer
+    public class ReaderSerdes : ISerdes
     {
         readonly Action<string> _assertionFailed;
         readonly Action _disposeAction;
@@ -13,7 +13,7 @@ namespace SerdesNet
         readonly BinaryReader _br;
         readonly long _maxOffset;
 
-        public GenericBinaryReader(
+        public ReaderSerdes(
             BinaryReader br,
             long maxLength,
             Func<byte[], string> bytesToString,
@@ -25,6 +25,20 @@ namespace SerdesNet
             _disposeAction = disposeAction;
             _bytesToString = bytesToString ?? throw new ArgumentNullException(nameof(bytesToString));
             _maxOffset = Offset + maxLength;
+        }
+
+        public ReaderSerdes(
+            byte[] bytes,
+            Func<byte[], string> bytesToString,
+            Action<string> assertionFailed = null,
+            Action disposeAction = null)
+        {
+            var ms = new MemoryStream(bytes);
+            _br = new BinaryReader(ms);
+            _maxOffset = bytes.Length;
+            _bytesToString = bytesToString ?? throw new ArgumentNullException(nameof(bytesToString));
+            _assertionFailed = assertionFailed;
+            _disposeAction = disposeAction;
         }
 
         public SerializerFlags Flags => SerializerFlags.Read;
@@ -52,23 +66,23 @@ namespace SerdesNet
                     Assert(false, $"Unexpected value \"{b}\" found in repeating byte pattern (expected {value}");
         }
 
-        public sbyte Int8(int n, sbyte value, sbyte _ = 0) => _br.ReadSByte();
-        public short Int16(int n, short value, short _ = 0) => _br.ReadInt16();
-        public int Int32(int n, int value, int _ = 0) => _br.ReadInt32();
-        public long Int64(int n, long value, long _ = 0) => _br.ReadInt64();
-        public byte UInt8(int n, byte value, byte _ = 0) => _br.ReadByte();
-        public ushort UInt16(int n, ushort value, ushort _ = 0) => _br.ReadUInt16();
-        public uint UInt32(int n, uint value, uint _ = 0) => _br.ReadUInt32();
-        public ulong UInt64(int n, ulong value, ulong _ = 0) => _br.ReadUInt64();
+        public sbyte Int8(int n, sbyte value) => _br.ReadSByte();
+        public short Int16(int n, short value) => _br.ReadInt16();
+        public int Int32(int n, int value) => _br.ReadInt32();
+        public long Int64(int n, long value) => _br.ReadInt64();
+        public byte UInt8(int n, byte value) => _br.ReadByte();
+        public ushort UInt16(int n, ushort value) => _br.ReadUInt16();
+        public uint UInt32(int n, uint value) => _br.ReadUInt32();
+        public ulong UInt64(int n, ulong value) => _br.ReadUInt64();
 
-        public sbyte Int8(string name, sbyte value, sbyte _ = 0) => _br.ReadSByte();
-        public short Int16(string name, short value, short _ = 0) => _br.ReadInt16();
-        public int Int32(string name, int value, int _ = 0) => _br.ReadInt32();
-        public long Int64(string name, long value, long _ = 0) => _br.ReadInt64();
-        public byte UInt8(string name, byte value, byte _ = 0) => _br.ReadByte();
-        public ushort UInt16(string name, ushort value, ushort _ = 0) => _br.ReadUInt16();
-        public uint UInt32(string name, uint value, uint _ = 0) => _br.ReadUInt32();
-        public ulong UInt64(string name, ulong value, ulong _ = 0) => _br.ReadUInt64();
+        public sbyte Int8(string name, sbyte value) => _br.ReadSByte();
+        public short Int16(string name, short value) => _br.ReadInt16();
+        public int Int32(string name, int value) => _br.ReadInt32();
+        public long Int64(string name, long value) => _br.ReadInt64();
+        public byte UInt8(string name, byte value) => _br.ReadByte();
+        public ushort UInt16(string name, ushort value) => _br.ReadUInt16();
+        public uint UInt32(string name, uint value) => _br.ReadUInt32();
+        public ulong UInt64(string name, ulong value) => _br.ReadUInt64();
 
         public T EnumU8<T>(int n, T value) where T : unmanaged, Enum => SerdesUtil.ByteToEnum<T>(_br.ReadByte());
         public T EnumU16<T>(int n, T value) where T : unmanaged, Enum => SerdesUtil.UShortToEnum<T>((_br.ReadUInt16()));
@@ -91,8 +105,18 @@ namespace SerdesNet
             var v = _br.ReadBytes(n);
             if (v.Length < n)
                 throw new EndOfStreamException();
+
             return v;
         }
+
+#if NETSTANDARD2_1_OR_GREATER
+        public void Bytes(string name, Span<byte> value)
+        {
+            int n = _br.Read(value);
+            if (value.Length < n)
+                throw new EndOfStreamException();
+        }
+#endif
 
         public string NullTerminatedString(string name, string value)
         {
@@ -102,6 +126,7 @@ namespace SerdesNet
                 var b = _br.ReadByte();
                 if (b == 0)
                     break;
+
                 bytes.Add(b);
             }
 
@@ -113,6 +138,7 @@ namespace SerdesNet
             var bytes = _br.ReadBytes(length);
             if (bytes.Length < length)
                 throw new EndOfStreamException();
+
             var str = _bytesToString(bytes);
             return str.TrimEnd('\0');
         }
@@ -123,11 +149,11 @@ namespace SerdesNet
             Func<int, IList<TTarget>> initialiser = null)
             => List(name, list, count, 0, serializer, initialiser);
 
-        public IList<TTarget> List<TTarget, TContext>(
+        public IList<TTarget> ListWithContext<TTarget, TContext>(
             string name, IList<TTarget> list, TContext context, int count,
             SerdesContextMethod<TTarget, TContext> serializer,
             Func<int, IList<TTarget>> initialiser = null)
-            => List(name, list, context, count, 0, serializer, initialiser);
+            => ListWithContext(name, list, context, count, 0, serializer, initialiser);
 
         public IList<TTarget> List<TTarget>(
             string name,
@@ -151,7 +177,7 @@ namespace SerdesNet
             return list;
         }
 
-        public IList<TTarget> List<TTarget, TContext>(
+        public IList<TTarget> ListWithContext<TTarget, TContext>(
             string name,
             IList<TTarget> list,
             TContext context,
@@ -174,7 +200,7 @@ namespace SerdesNet
             return list;
         }
 
-        void ISerializer.Assert(bool condition, string message) => Assert(condition, message);
+        void ISerdes.Assert(bool condition, string message) => Assert(condition, message);
         void Assert(bool condition, string message = null, [CallerMemberName] string function = "", [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
         {
             if (condition)

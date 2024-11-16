@@ -1,22 +1,31 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Cam Sinclair</Authors>
-    <Company />
-    <Description>A .NET serialisation library where the same function can both serialise and deserialise (i.e. Serdes = SERialise-DESerialise)</Description>
+    <Description>A .NET serialisation library where the same function can both serialize and deserialize (i.e. Serdes = SERialize-DESerialize)</Description>
     <Copyright>2020 Cam Sinclair</Copyright>
     <PackageId>SerdesNet</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/CSinkers/SerdesNet</PackageProjectUrl>
     <PackageTags>serialisation serialization</PackageTags>
-    <RepositoryUrl>https://github.com/CSinkers/SerdesNet</RepositoryUrl>
-    <RepositoryType>Git</RepositoryType>
-    <Version>2.0.1</Version>
-    <LangVersion>8</LangVersion>
+    <PackageProjectUrl>https://github.com/csinkers/SerdesNet</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/csinkers/SerdesNet</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <LangVersion>12</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Title>SerdesNet</Title>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IncludeSymbols>True</IncludeSymbols>
+    <Version>3.0.0</Version>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="System.Memory" Version="4.5.5" />

@@ -4,15 +4,16 @@ using System.Text;
 
 namespace SerdesNet
 {
-    static class SerdesUtil
+    internal static class SerdesUtil
     {
         const string HexChars = "0123456789ABCDEF";
-        public static string ConvertToHexString(byte[] bytes) => ConvertToHexString(bytes, bytes.Length);
-        public static string ConvertToHexString(byte[] bytes, int n)
+        public static string ConvertToHexString(ReadOnlySpan<byte> bytes)
         {
-            if (bytes == null) return "";
-            var result = new StringBuilder(n * 2);
-            for(int i = 0; i < n; i++)
+            if (bytes.Length == 0)
+                return "";
+
+            var result = new StringBuilder(bytes.Length * 2);
+            for(int i = 0; i < bytes.Length; i++)
             {
                 byte b = bytes[i];
                 result.Append(HexChars[b >> 4]);
@@ -28,7 +29,7 @@ namespace SerdesNet
             {
                 return
                     sizeof(T) == 1 ? Unsafe.As<T, byte>(ref value)
-                    : throw new InvalidOperationException($"Type {typeof(T)} is of non-enum type, or has an unsupported underlying type");
+                        : throw new InvalidOperationException($"Type {typeof(T)} is of non-enum type, or has an unsupported underlying type");
             }
         }
         public static ushort EnumToUShort<T>(T value) where T : unmanaged, Enum

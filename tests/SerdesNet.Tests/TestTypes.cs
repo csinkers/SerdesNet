@@ -72,7 +72,7 @@ namespace SerdesNet.Tests
             if(Guid       != guid) failed($"Guid was expected to be {guid}, but was {Guid}");
         }
 
-        public static Example TestInstance = new Example
+        public static readonly Example TestInstance = new()
         {
             SByte = -1,
             Byte = 1,
@@ -106,7 +106,7 @@ namespace SerdesNet.Tests
         public string     NullTerm   { get; private set; }
         public Guid       Guid       { get; private set; }
 
-        public static Example Serdes(string _, Example e, ISerializer s)
+        public static Example Serdes(string _, Example e, ISerdes s)
         {
             e ??= new Example();
             e.SByte      =    s.Int8(nameof(SByte), e.SByte);

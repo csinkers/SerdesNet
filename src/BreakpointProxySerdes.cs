@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SerdesNet 
+namespace SerdesNet
 {
     /// <summary>
     /// Debugging serializer for investigating unintentional overwrites
     /// After setting BreakRange to the byte range of interest the Hit
     /// event will fire when bytes in the range are read or written.
     /// </summary>
-    public sealed class BreakpointProxySerializer : ISerializer // For debugging unintentional overwrites
+    public sealed class BreakpointProxySerdes : ISerdes // For debugging unintentional overwrites
     {
-        readonly ISerializer _s;
+        readonly ISerdes _s;
         public event EventHandler<(long start, long finish)> Hit;
         public (long from, long to)? BreakRange { get; set; }
-        public BreakpointProxySerializer(ISerializer s) => _s = s ?? throw new ArgumentNullException(nameof(s));
+        public BreakpointProxySerdes(ISerdes s) => _s = s ?? throw new ArgumentNullException(nameof(s));
         public void Dispose() { }
         public SerializerFlags Flags => _s.Flags;
         public long Offset => _s.Offset;
@@ -33,10 +33,7 @@ namespace SerdesNet
 
             var finish = _s.Offset;
             if (start <= BreakRange.Value.to && finish >= BreakRange.Value.from)
-            {
                 Hit?.Invoke(this, (start, finish));
-                throw new InvalidOperationException($"HIT BREAKPOINT FOR ({BreakRange.Value.from}, {BreakRange.Value.to}), START: {start} FINISH:{finish}");
-            }
         }
 
         T CheckT<T>(Func<T> func)
@@ -47,8 +44,8 @@ namespace SerdesNet
             if (BreakRange != null)
             {
                 var finish = _s.Offset;
-                if (start <= BreakRange.Value.to && finish >= BreakRange.Value.@from)
-                    throw new InvalidOperationException($"HIT BREAKPOINT FOR ({BreakRange.Value.@from}, {BreakRange.Value.to}), START: {start} FINISH:{finish}");
+                if (start <= BreakRange.Value.to && finish >= BreakRange.Value.from)
+                    Hit?.Invoke(this, (start, finish));
             }
 
             return result;
@@ -59,25 +56,25 @@ namespace SerdesNet
 
         public void Pad(int count, byte value = 0) => _s.Pad(count, value);
         public void Pad(string name, int count, byte value) => CheckV(() => _s.Pad(name, count, value));
-    #pragma warning disable CA1720 // Identifier contains type name
+#pragma warning disable CA1720 // Identifier contains type name
 
-        public sbyte Int8(int n, sbyte value, sbyte defaultValue = 0) => CheckT(() => _s.Int8(n, value, defaultValue));
-        public short Int16(int n, short value, short defaultValue = 0) => CheckT(() => _s.Int16(n, value, defaultValue));
-        public int Int32(int n, int value, int defaultValue = 0) => CheckT(() => _s.Int32(n, value, defaultValue));
-        public long Int64(int n, long value, long defaultValue = 0) => CheckT(() => _s.Int64(n, value, defaultValue));
-        public byte UInt8(int n, byte value, byte defaultValue = 0) => CheckT(() => _s.UInt8(n, value, defaultValue));
-        public ushort UInt16(int n, ushort value, ushort defaultValue = 0) => CheckT(() => _s.UInt16(n, value, defaultValue));
-        public uint UInt32(int n, uint value, uint defaultValue = 0) => CheckT(() => _s.UInt32(n, value, defaultValue));
-        public ulong UInt64(int n, ulong value, ulong defaultValue = 0) => CheckT(() => _s.UInt64(n, value, defaultValue));
+        public sbyte Int8(int n, sbyte value) => CheckT(() => _s.Int8(n, value));
+        public short Int16(int n, short value) => CheckT(() => _s.Int16(n, value));
+        public int Int32(int n, int value) => CheckT(() => _s.Int32(n, value));
+        public long Int64(int n, long value) => CheckT(() => _s.Int64(n, value));
+        public byte UInt8(int n, byte value) => CheckT(() => _s.UInt8(n, value));
+        public ushort UInt16(int n, ushort value) => CheckT(() => _s.UInt16(n, value));
+        public uint UInt32(int n, uint value) => CheckT(() => _s.UInt32(n, value));
+        public ulong UInt64(int n, ulong value) => CheckT(() => _s.UInt64(n, value));
 
-        public sbyte Int8(string name, sbyte value, sbyte defaultValue = 0) => CheckT(() => _s.Int8(name, value, defaultValue));
-        public short Int16(string name, short value, short defaultValue = 0) => CheckT(() => _s.Int16(name, value, defaultValue));
-        public int Int32(string name, int value, int defaultValue = 0) => CheckT(() => _s.Int32(name, value, defaultValue));
-        public long Int64(string name, long value, long defaultValue = 0) => CheckT(() => _s.Int64(name, value, defaultValue));
-        public byte UInt8(string name, byte value, byte defaultValue = 0) => CheckT(() => _s.UInt8(name, value, defaultValue));
-        public ushort UInt16(string name, ushort value, ushort defaultValue = 0) => CheckT(() => _s.UInt16(name, value, defaultValue));
-        public uint UInt32(string name, uint value, uint defaultValue = 0) => CheckT(() => _s.UInt32(name, value, defaultValue));
-        public ulong UInt64(string name, ulong value, ulong defaultValue = 0) => CheckT(() => _s.UInt64(name, value, defaultValue));
+        public sbyte Int8(string name, sbyte value) => CheckT(() => _s.Int8(name, value));
+        public short Int16(string name, short value) => CheckT(() => _s.Int16(name, value));
+        public int Int32(string name, int value) => CheckT(() => _s.Int32(name, value));
+        public long Int64(string name, long value) => CheckT(() => _s.Int64(name, value));
+        public byte UInt8(string name, byte value) => CheckT(() => _s.UInt8(name, value));
+        public ushort UInt16(string name, ushort value) => CheckT(() => _s.UInt16(name, value));
+        public uint UInt32(string name, uint value) => CheckT(() => _s.UInt32(name, value));
+        public ulong UInt64(string name, ulong value) => CheckT(() => _s.UInt64(name, value));
 
         public T EnumU8<T>(int n, T value) where T : unmanaged, Enum => CheckT(() => _s.EnumU8(n, value));
         public T EnumU16<T>(int n, T value) where T : unmanaged, Enum => CheckT(() => _s.EnumU16(n, value));
@@ -89,6 +86,23 @@ namespace SerdesNet
 
         public Guid Guid(string name, Guid value) => CheckT(() => _s.Guid(name, value));
         public byte[] Bytes(string name, byte[] value, int length) => CheckT(() => _s.Bytes(name, value, length));
+
+#if NETSTANDARD2_1_OR_GREATER
+        public void Bytes(string name, Span<byte> value)
+        {
+            // Can't use CheckT with Span
+            var start = _s.Offset;
+            _s.Bytes(name, value);
+
+            if (BreakRange != null)
+            {
+                var finish = _s.Offset;
+                if (start <= BreakRange.Value.to && finish >= BreakRange.Value.from)
+                    Hit?.Invoke(this, (start, finish));
+            }
+        }
+#endif
+
         public string NullTerminatedString(string name, string value) => CheckT(() => _s.NullTerminatedString(name, value));
         public string FixedLengthString(string name, string value, int length) => CheckT(() => _s.FixedLengthString(name, value, length));
 
@@ -110,16 +124,16 @@ namespace SerdesNet
             Func<int, IList<TTarget>> initialiser = null) 
             => CheckT(() => _s.List(name, list, count, offset, serdes, initialiser));
 
-        public IList<TTarget> List<TTarget, TContext>(
+        public IList<TTarget> ListWithContext<TTarget, TContext>(
             string name,
             IList<TTarget> list,
             TContext context,
             int count,
             SerdesContextMethod<TTarget, TContext> serdes,
             Func<int, IList<TTarget>> initialiser = null) 
-            => CheckT(() => _s.List(name, list, context, count, serdes, initialiser));
+            => CheckT(() => _s.ListWithContext(name, list, context, count, serdes, initialiser));
 
-        public IList<TTarget> List<TTarget, TContext>(
+        public IList<TTarget> ListWithContext<TTarget, TContext>(
             string name,
             IList<TTarget> list,
             TContext context,
@@ -127,6 +141,6 @@ namespace SerdesNet
             int offset,
             SerdesContextMethod<TTarget, TContext> serdes,
             Func<int, IList<TTarget>> initialiser = null) 
-            => CheckT(() => _s.List(name, list, context, count, offset, serdes, initialiser));
+            => CheckT(() => _s.ListWithContext(name, list, context, count, offset, serdes, initialiser));
     }
 }

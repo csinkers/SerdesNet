@@ -1,11 +1,16 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29409.12
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35506.116 d17.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SerdesNet", "src\SerdesNet.csproj", "{170417F9-D38E-436E-AC85-102B373A2C3E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SerdesNet.Tests", "test\SerdesNet.Tests\SerdesNet.Tests.csproj", "{B420255D-2B27-4F5B-A1A3-0DC9607CF97B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SerdesNet.Tests", "tests\SerdesNet.Tests\SerdesNet.Tests.csproj", "{B420255D-2B27-4F5B-A1A3-0DC9607CF97B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{298AADEE-4E54-4F47-B7B4-71042FC6CCB6}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

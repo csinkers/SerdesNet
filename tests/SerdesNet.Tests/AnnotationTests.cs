@@ -9,18 +9,18 @@ namespace SerdesNet.Tests
 {
     public class AnnotationTests
     {
-        static string Write(Action<ISerializer> action, Action<string> assertHandler = null)
+        static string Write(Action<ISerdes> action, Action<string> assertHandler = null)
         {
             using var byteStream = new MemoryStream();
             using var binaryWriter = new BinaryWriter(byteStream);
-            using var binarySerializer = new GenericBinaryWriter(
+            using var binarySerializer = new WriterSerdes(
                 binaryWriter,
                 Encoding.UTF8.GetBytes,
                 assertHandler ?? (m => throw new InvalidOperationException(m)));
 
             using var textStream = new MemoryStream();
             using var textWriter = new StreamWriter(textStream);
-            using var annotatingSerializer = new AnnotationProxySerializer(binarySerializer, textWriter, Encoding.ASCII.GetBytes);
+            using var annotatingSerializer = new AnnotationProxySerdes(binarySerializer, textWriter, Encoding.ASCII.GetBytes);
 
             action(annotatingSerializer);
 
@@ -135,18 +135,18 @@ namespace SerdesNet.Tests
         [Fact]
         public void ListTest()
         {
-            static byte UInt8Serdes(int i, byte v, ISerializer s) => s.UInt8(i.ToString(), v);
+            static byte UInt8Serdes(int i, byte v, ISerdes s) => s.UInt8(i.ToString(), v);
             Assert.Equal(@"0 name: {
     0 0 = 1 (0x1 uy)
     1 1 = 2 (0x2 uy)
     2 2 = 3 (0x3 uy)
 }",
                 Write(s => s.List(
-                        "name",
-                        new byte[] { 1, 2, 3 },
-                        3,
-                        UInt8Serdes,
-                        _ => throw new InvalidOperationException())));
+                    "name",
+                    new byte[] { 1, 2, 3 },
+                    3,
+                    UInt8Serdes,
+                    _ => throw new InvalidOperationException())));
 
             Assert.Equal(@"0 name: {
     0 1 = 1 (0x1 uy)
@@ -154,12 +154,12 @@ namespace SerdesNet.Tests
     2 3 = 3 (0x3 uy)
 }",
                 Write(s => s.List(
-                        "name",
-                        new byte[] { 0, 1, 2, 3 },
-                        3,
-                        1,
-                        UInt8Serdes,
-                        _ => throw new InvalidOperationException())));
+                    "name",
+                    new byte[] { 0, 1, 2, 3 },
+                    3,
+                    1,
+                    UInt8Serdes,
+                    _ => throw new InvalidOperationException())));
         }
 
         [Fact]
@@ -202,7 +202,7 @@ namespace SerdesNet.Tests
             Write(x => Assert.Equal(int.MaxValue, x.BytesRemaining));
             Write(x => Assert.NotEqual(0, x.BytesRemaining));
 
-            static void Block1(ISerializer s)
+            static void Block1(ISerdes s)
             {
                 Assert.Equal(0, s.Offset);
                 s.Comment("x"); Assert.Equal(0, s.Offset);
@@ -213,7 +213,7 @@ namespace SerdesNet.Tests
                 s.UInt32("name", 0x6050403u); Assert.Equal(7, s.Offset);
             }
 
-            static void Block2(ISerializer s)
+            static void Block2(ISerdes s)
             {
                 s.Seek(0);
                 Assert.Equal(0, s.Offset);
@@ -254,7 +254,7 @@ namespace SerdesNet.Tests
                     ByteEnum.Both,
                     ByteEnum.Many,
                     ByteEnum.All
-                }, 5, S.EnumU8)));
+                }, 5, (n, v, s2) => s2.EnumU8(n, v))));
 
             Assert.Equal(@"0 name: {
     0 0 = 0 (0x0 us) // None
@@ -270,7 +270,7 @@ namespace SerdesNet.Tests
                     UShortEnum.Both,
                     UShortEnum.Many,
                     UShortEnum.All,
-                }, 5, S.EnumU16)));
+                }, 5, (n, v, s2) => s2.EnumU16(n, v))));
 
             Assert.Equal(@"0 name: {
     0 0 = 0 (0x0 u) // None
@@ -286,113 +286,7 @@ namespace SerdesNet.Tests
                     UIntEnum.Both, 
                     UIntEnum.Many, 
                     UIntEnum.All, 
-                }, 5, S.EnumU32)));
-        }
-
-        [Fact]
-        public void TransformEnumTests()
-        {
-            // Note: annotation doesn't currently have comments for transformed enums
-            Assert.Equal(@"0 name: {
-    0 0 = 0 (0x0 uy)
-    1 1 = 1 (0x1 uy)
-    2 2 = 2 (0x2 uy)
-    3 3 = 3 (0x3 uy)
-    4 4 = 255 (0xFF uy)
-}",
-                Write(s => s.List("name", new[]
-                {
-                    (ByteEnum?)null,
-                    ByteEnum.None,
-                    ByteEnum.Some,
-                    ByteEnum.Both,
-                    ByteEnum.AlmostAll,
-                }, 5, (i, v, s2) => s2.TransformEnumU8(i.ToString(), v, ZeroToNullConverter<ByteEnum>.Instance))));
-
-            Assert.Equal(@"0 name: {
-    0 0 = 0 (0x0 uy)
-    1 1 = 1 (0x1 uy)
-    2 2 = 2 (0x2 uy)
-    3 3 = 3 (0x3 uy)
-    4 4 = 255 (0xFF uy)
-}",
-                Write(s => s.List("name", new[]
-                {
-                    ByteEnum.None,
-                    ByteEnum.Some,
-                    ByteEnum.Both,
-                    ByteEnum.Many,
-                    (ByteEnum?)null
-                }, 5,
-                (i, v, s2) => s2.TransformEnumU8(i.ToString(), v, MaxToNullConverter<ByteEnum>.Instance))));
-
-            Assert.Equal(@"0 name: {
-    0 0 = 0 (0x0 us)
-    2 1 = 1 (0x1 us)
-    4 2 = 2 (0x2 us)
-    6 3 = 3 (0x3 us)
-    8 4 = 65535 (0xFFFF us)
-}",
-                Write(s => s.List("name", new[]
-                {
-                    (UShortEnum?) null,
-                    UShortEnum.None,
-                    UShortEnum.Some,
-                    UShortEnum.Both,
-                    UShortEnum.AlmostAll,
-                }, 5,
-                (i, v, s2) => s2.TransformEnumU16(i.ToString(), v, ZeroToNullConverter<UShortEnum>.Instance))));
-
-            Assert.Equal(@"0 name: {
-    0 0 = 0 (0x0 us)
-    2 1 = 1 (0x1 us)
-    4 2 = 2 (0x2 us)
-    6 3 = 3 (0x3 us)
-    8 4 = 65535 (0xFFFF us)
-}",
-                Write(s => s.List("name", new[]
-                {
-                    UShortEnum.None,
-                    UShortEnum.Some,
-                    UShortEnum.Both,
-                    UShortEnum.Many,
-                    (UShortEnum?)null
-                }, 5,
-                (i, v, s2) => s2.TransformEnumU16(i.ToString(), v, MaxToNullConverter<UShortEnum>.Instance)))
-            );
-
-            Assert.Equal(@"0 name: {
-    0 0 = 0 (0x0 u)
-    4 1 = 1 (0x1 u)
-    8 2 = 2 (0x2 u)
-    C 3 = 3 (0x3 u)
-    10 4 = 4294967295 (0xFFFFFFFF u)
-}",
-                Write(s => s.List("name", new[]
-                {
-                    (UIntEnum?)null,
-                    UIntEnum.None,
-                    UIntEnum.Some,
-                    UIntEnum.Both,
-                    UIntEnum.AlmostAll,
-                }, 5,
-                (i, v, s2) => s2.TransformEnumU32(i.ToString(), v, ZeroToNullConverter<UIntEnum>.Instance))));
-
-            Assert.Equal(@"0 name: {
-    0 0 = 0 (0x0 u)
-    4 1 = 1 (0x1 u)
-    8 2 = 2 (0x2 u)
-    C 3 = 3 (0x3 u)
-    10 4 = 4294967295 (0xFFFFFFFF u)
-}",
-                Write(s => s.List("name", new[]
-                {
-                    UIntEnum.None,
-                    UIntEnum.Some,
-                    UIntEnum.Both,
-                    UIntEnum.Many,
-                    (UIntEnum?)null
-                }, 5, (i, v, s2) => s2.TransformEnumU32(i.ToString(), v, MaxToNullConverter<UIntEnum>.Instance))));
+                }, 5, (n, v, s2) => s2.EnumU32(n, v))));
         }
 
         [Fact]
