@@ -3,11 +3,9 @@ using System.Collections.Generic;
 
 namespace SerdesNet;
 
-public delegate T SerdesMethod<T>(int n, T value, ISerdes s);
-public delegate T SerdesContextMethod<T, in TContext>(int n, T value, TContext context, ISerdes s);
-public delegate T NamedSerdesMethod<T>(string name, T value, ISerdes s);
-public delegate T NamedSerdesContextMethod<T, in TContext>(string name, T value, TContext context, ISerdes s);
-
+/// <summary>
+/// Interface for classes that serialize or deserialize data.
+/// </summary>
 public interface ISerdes : IDisposable
 {
     /// <summary>
@@ -57,7 +55,7 @@ public interface ISerdes : IDisposable
     /// Seeks to the specified offset in the stream / window.
     /// Useful when an earlier offset needs to be overwritten with a value that was not yet known when it was first visited.
     /// </summary>
-    /// <param name="offset"></param>
+    /// <param name="offset">The offset to seek to</param>
     void Seek(long offset);
 
     /// <summary>
@@ -393,10 +391,24 @@ public interface ISerdes : IDisposable
         Func<int, IList<TTarget>> initialiser = null);
 }
 
+/// <summary>
+/// Various extension methods to supplement the functionality of ISerdes instances
+/// </summary>
 public static class SerializerExtensions
 {
+    /// <summary>
+    /// Helper method to determine if the serdes instance reads data.
+    /// </summary>
     public static bool IsReading(this ISerdes s) => (s.Flags & SerializerFlags.Read) != 0;
+
+    /// <summary>
+    /// Helper method to determine if the serdes instance writes data.
+    /// </summary>
     public static bool IsWriting(this ISerdes s) => (s.Flags & SerializerFlags.Write) != 0;
+
+    /// <summary>
+    /// Helper method to determine if the serdes instance generates comments.
+    /// </summary>
     public static bool IsCommenting(this ISerdes s) => (s.Flags & SerializerFlags.Comments) != 0;
 
     /// <summary>
@@ -415,43 +427,187 @@ public static class SerializerExtensions
     }
 
     // ReSharper disable InconsistentNaming
+
+    /// <summary>
+    /// (De)serializes a (big-endian) signed 16-bit integer (i.e. a signed short in the range -32768..32767).
+    /// </summary>
+    /// <param name="s">The serdes instance</param>
+    /// <param name="n">The index of the value being written, only used for annotation</param>
+    /// <param name="value">The value to write when serializing</param>
+    /// <returns>The value that was (de)serialized</returns>
     public static short Int16BE(this ISerdes s, int n, short value) => SwapBytes16(s.Int16(n, SwapBytes16(value)));
-    public static int   Int32BE(this ISerdes s, int n, int   value) => SwapBytes32(s.Int32(n, SwapBytes32(value)));
-    public static long  Int64BE(this ISerdes s, int n, long  value) => SwapBytes64(s.Int64(n, SwapBytes64(value)));
 
+    /// <summary>
+    /// (De)serializes a (big-endian) signed 32-bit integer (i.e. a signed int in the range -2147483648..2147483647).
+    /// </summary>
+    /// <param name="s">The serdes instance</param>
+    /// <param name="n">The index of the value being written, only used for annotation</param>
+    /// <param name="value">The value to write when serializing</param>
+    /// <returns>The value that was (de)serialized</returns>
+    public static int Int32BE(this ISerdes s, int n, int value) => SwapBytes32(s.Int32(n, SwapBytes32(value)));
+
+    /// <summary>
+    /// (De)serializes a (big-endian) signed 64-bit integer (i.e. a signed long in the range -9223372036854775808..9223372036854775807).
+    /// </summary>
+    /// <param name="s">The serdes instance</param>
+    /// <param name="n">The index of the value being written, only used for annotation</param>
+    /// <param name="value">The value to write when serializing</param>
+    /// <returns>The value that was (de)serialized</returns>
+    public static long Int64BE(this ISerdes s, int n, long value) => SwapBytes64(s.Int64(n, SwapBytes64(value)));
+
+    /// <summary>
+    /// (De)serializes an (big-endian) unsigned 16-bit integer (i.e. an unsigned short in the range 0..65535).
+    /// </summary>
+    /// <param name="s">The serdes instance</param>
+    /// <param name="n">The index of the value being written, only used for annotation</param>
+    /// <param name="value">The value to write when serializing</param>
+    /// <returns>The value that was (de)serialized</returns>
     public static ushort UInt16BE(this ISerdes s, int n, ushort value) => SwapBytes16(s.UInt16(n, SwapBytes16(value)));
-    public static uint   UInt32BE(this ISerdes s, int n, uint   value) => SwapBytes32(s.UInt32(n, SwapBytes32(value)));
-    public static ulong  UInt64BE(this ISerdes s, int n, ulong  value) => SwapBytes64(s.UInt64(n, SwapBytes64(value)));
 
+    /// <summary>
+    /// (De)serializes an (big-endian) unsigned 32-bit integer (i.e. an unsigned int in the range 0..4294967295).
+    /// </summary>
+    /// <param name="s">The serdes instance</param>
+    /// <param name="n">The index of the value being written, only used for annotation</param>
+    /// <param name="value">The value to write when serializing</param>
+    /// <returns>The value that was (de)serialized</returns>
+    public static uint UInt32BE(this ISerdes s, int n, uint value) => SwapBytes32(s.UInt32(n, SwapBytes32(value)));
+
+    /// <summary>
+    /// (De)serializes an (big-endian) unsigned 64-bit integer (i.e. an unsigned long in the range 0..18446744073709551615).
+    /// </summary>
+    /// <param name="s">The serdes instance</param>
+    /// <param name="n">The index of the value being written, only used for annotation</param>
+    /// <param name="value">The value to write when serializing</param>
+    /// <returns>The value that was (de)serialized</returns>
+    public static ulong UInt64BE(this ISerdes s, int n, ulong value) => SwapBytes64(s.UInt64(n, SwapBytes64(value)));
+
+    /// <summary>
+    /// (De)serializes an enum value with an underlying type of ushort (big-endian).
+    /// </summary>
+    /// <param name="s">The serdes instance</param>
+    /// <param name="name">The name of the value being written, only used for annotation</param>
+    /// <param name="value">The value to write when serializing</param>
+    /// <returns>The value that was (de)serialized</returns>
     public static short Int16BE(this ISerdes s, string name, short value) => SwapBytes16(s.Int16(name, SwapBytes16(value)));
-    public static int   Int32BE(this ISerdes s, string name, int   value) => SwapBytes32(s.Int32(name, SwapBytes32(value)));
-    public static long  Int64BE(this ISerdes s, string name, long  value) => SwapBytes64(s.Int64(name, SwapBytes64(value)));
 
+    /// <summary>
+    /// (De)serializes an enum value with an underlying type of uint (big-endian).
+    /// </summary>
+    /// <param name="s">The serdes instance</param>
+    /// <param name="name">The name of the value being written, only used for annotation</param>
+    /// <param name="value">The value to write when serializing</param>
+    /// <returns>The value that was (de)serialized</returns>
+    public static int Int32BE(this ISerdes s, string name, int value) => SwapBytes32(s.Int32(name, SwapBytes32(value)));
+
+    /// <summary>
+    /// (De)serializes an enum value with an underlying type of ulong (big-endian).
+    /// </summary>
+    /// <param name="s">The serdes instance</param>
+    /// <param name="name">The name of the value being written, only used for annotation</param>
+    /// <param name="value">The value to write when serializing</param>
+    /// <returns>The value that was (de)serialized</returns>
+    public static long Int64BE(this ISerdes s, string name, long value) => SwapBytes64(s.Int64(name, SwapBytes64(value)));
+
+    /// <summary>
+    /// (De)serializes an enum value with an underlying type of ushort (big-endian).
+    /// </summary>
+    /// <param name="s">The serdes instance</param>
+    /// <param name="name">The name of the value being written, only used for annotation</param>
+    /// <param name="value">The value to write when serializing</param>
+    /// <returns>The value that was (de)serialized</returns>
     public static ushort UInt16BE(this ISerdes s, string name, ushort value) => SwapBytes16(s.UInt16(name, SwapBytes16(value)));
-    public static uint   UInt32BE(this ISerdes s, string name, uint   value) => SwapBytes32(s.UInt32(name, SwapBytes32(value)));
-    public static ulong  UInt64BE(this ISerdes s, string name, ulong  value) => SwapBytes64(s.UInt64(name, SwapBytes64(value)));
 
+    /// <summary>
+    /// (De)serializes an enum value with an underlying type of uint (big-endian).
+    /// </summary>
+    /// <param name="s">The serdes instance</param>
+    /// <param name="name">The name of the value being written, only used for annotation</param>
+    /// <param name="value">The value to write when serializing</param>
+    /// <returns>The value that was (de)serialized</returns>
+    public static uint UInt32BE(this ISerdes s, string name, uint value) => SwapBytes32(s.UInt32(name, SwapBytes32(value)));
+
+    /// <summary>
+    /// (De)serializes an enum value with an underlying type of ulong (big-endian).
+    /// </summary>
+    /// <param name="s">The serdes instance</param>
+    /// <param name="name">The name of the value being written, only used for annotation</param>
+    /// <param name="value">The value to write when serializing</param>
+    /// <returns>The value that was (de)serialized</returns>
+    public static ulong UInt64BE(this ISerdes s, string name, ulong value) => SwapBytes64(s.UInt64(name, SwapBytes64(value)));
+
+    /// <summary>
+    /// (De)serializes an enum value with an underlying type of ushort (big-endian).
+    /// </summary>
+    /// <typeparam name="T">The enum type to (de)serialize</typeparam>
+    /// <param name="s">The serdes instance</param>
+    /// <param name="n">The index of the value being written, only used for annotation</param>
+    /// <param name="value">The value to write when serializing</param>
+    /// <returns>The value that was (de)serialized</returns>
     public static T EnumU16BE<T>(this ISerdes s, int n, T value)  where T : unmanaged, Enum
         => (T)(object)SwapBytes16(s.UInt16(n, SwapBytes16((ushort)(object)value)));
 
+    /// <summary>
+    /// (De)serializes an enum value with an underlying type of uint (big-endian).
+    /// </summary>
+    /// <typeparam name="T">The enum type to (de)serialize</typeparam>
+    /// <param name="s">The serdes instance</param>
+    /// <param name="n">The index of the value being written, only used for annotation</param>
+    /// <param name="value">The value to write when serializing</param>
+    /// <returns>The value that was (de)serialized</returns>
     public static T EnumU32BE<T>(this ISerdes s, int n, T value)  where T : unmanaged, Enum
         => (T)(object)SwapBytes32(s.UInt32(n, SwapBytes32((uint)(object)value)));
 
+    /// <summary>
+    /// (De)serializes an enum value with an underlying type of ushort (big-endian).
+    /// </summary>
+    /// <typeparam name="T">The enum type to (de)serialize</typeparam>
+    /// <param name="s">The serdes instance</param>
+    /// <param name="name">The name of the value being written, only used for annotation</param>
+    /// <param name="value">The value to write when serializing</param>
+    /// <returns>The value that was (de)serialized</returns>
     public static T EnumU16BE<T>(this ISerdes s, string name, T value)  where T : unmanaged, Enum
         => (T)(object)SwapBytes16(s.UInt16(name, SwapBytes16((ushort)(object)value)));
 
+    /// <summary>
+    /// (De)serializes an enum value with an underlying type of uint (big-endian).
+    /// </summary>
+    /// <typeparam name="T">The enum type to (de)serialize</typeparam>
+    /// <param name="s">The serdes instance</param>
+    /// <param name="name">The name of the value being written, only used for annotation</param>
+    /// <param name="value">The value to write when serializing</param>
+    /// <returns>The value that was (de)serialized</returns>
     public static T EnumU32BE<T>(this ISerdes s, string name, T value)  where T : unmanaged, Enum
         => (T)(object)SwapBytes32(s.UInt32(name, SwapBytes32((uint)(object)value)));
 
     // ReSharper restore InconsistentNaming
 
+    /// <summary>
+    /// Invokes a serdes method inside an indexed scope.
+    /// </summary>
+    /// <typeparam name="T">The type of object being (de)serialized</typeparam>
+    /// <param name="s">The serdes instance</param>
+    /// <param name="n">The index of the value being written, only used for annotation</param>
+    /// <param name="value">The value to write when serializing</param>
+    /// <param name="serdesMethod">The method responsible for the actual (de)serialization</param>
+    /// <returns></returns>
     public static T Object<T>(this ISerdes s, int n, T value, SerdesMethod<T> serdesMethod)
     {
-        s.Begin($"{n}");
+        s.Begin(s.IsCommenting() ? $"{n}" : null); // Avoid allocating a string when we're not annotating.
         var result = serdesMethod(n, value, s);
         s.End();
         return result;
     }
+
+    /// <summary>
+    /// Invokes a serdes method inside a named scope.
+    /// </summary>
+    /// <typeparam name="T">The type of object being (de)serialized</typeparam>
+    /// <param name="s">The serdes instance</param>
+    /// <param name="name">The name of the value being written, only used for annotation</param>
+    /// <param name="value">The value to write when serializing</param>
+    /// <param name="serdesMethod">The method responsible for the actual (de)serialization</param>
+    /// <returns></returns>
     public static T Object<T>(this ISerdes s, string name, T value, NamedSerdesMethod<T> serdesMethod)
     {
         s.Begin(name);
@@ -460,6 +616,17 @@ public static class SerializerExtensions
         return result;
     }
 
+    /// <summary>
+    /// Invokes a serdes method inside a named scope with a context value.
+    /// </summary>
+    /// <typeparam name="T">The type of object being (de)serialized</typeparam>
+    /// <typeparam name="TContext">The type of context data that will be passed through to the serdes function.</typeparam>
+    /// <param name="s">The serdes instance</param>
+    /// <param name="name">The name of the value being written, only used for annotation</param>
+    /// <param name="value">The value to write when serializing</param>
+    /// <param name="context">The context data to pass through to the serdes function</param>
+    /// <param name="serdesMethod">The method responsible for the actual (de)serialization</param>
+    /// <returns></returns>
     public static T Object<T, TContext>(
         this ISerdes s,
         string name,
@@ -473,6 +640,14 @@ public static class SerializerExtensions
         return result;
     }
 
+    /// <summary>
+    /// Invokes a non-specific serdes method inside a named scope with a context value.
+    /// </summary>
+    /// <typeparam name="TContext">The type of context data that will be passed through to the serdes function.</typeparam>
+    /// <param name="s">The serdes instance</param>
+    /// <param name="name">The name of the value being written, only used for annotation</param>
+    /// <param name="context">The context data to pass through to the serdes function</param>
+    /// <param name="serdesMethod">The method responsible for the actual (de)serialization</param>
     public static void Object<TContext>(
         this ISerdes s,
         string name,

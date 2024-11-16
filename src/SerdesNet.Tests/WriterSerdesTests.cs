@@ -6,7 +6,7 @@ using Xunit;
 
 namespace SerdesNet.Tests;
 
-public class WriteTests
+public class WriterSerdesTests
 {
     static byte[] Write(Action<ISerdes> action, Action<string> assertHandler = null)
     {

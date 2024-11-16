@@ -16,10 +16,18 @@ public class AnnotationProxySerdes : ISerdes
     readonly TextWriter _tw;
     readonly Func<string, byte[]> _stringToBytes;
     readonly ISerdes _s;
-    readonly Stack<long> _offsetStack = new Stack<long>();
+    readonly Stack<long> _offsetStack = new();
     readonly bool _useRelativeOffsets;
     int _indent;
 
+    /// <summary>
+    /// Creates a new AnnotationProxySerdes.
+    /// </summary>
+    /// <param name="s">The underlying serdes to delegate to</param>
+    /// <param name="tw">The text writer that will record the annotations</param>
+    /// <param name="stringToBytes">A function to convert a string to its byte representation in the desired encoding.</param>
+    /// <param name="useRelativeOffsets">Whether to use absolute or relative offsets when emitting fields inside a block/object scope</param>
+    /// <exception cref="ArgumentNullException"></exception>
     public AnnotationProxySerdes(ISerdes s, TextWriter tw, Func<string, byte[]> stringToBytes, bool useRelativeOffsets = true)
     {
         _s = s ?? throw new ArgumentNullException(nameof(s));
@@ -29,12 +37,20 @@ public class AnnotationProxySerdes : ISerdes
         _useRelativeOffsets = useRelativeOffsets;
     }
 
+    /// <inheritdoc />
     public void Dispose() => _s.Dispose();
+
+    /// <inheritdoc />
     public SerializerFlags Flags => _s.Flags | SerializerFlags.Comments;
+
+    /// <inheritdoc />
     public long Offset => _s.Offset;
     long LocalOffset => _useRelativeOffsets ? Offset - _offsetStack.Peek() : Offset;
+
+    /// <inheritdoc />
     public long BytesRemaining => _s.BytesRemaining;
 
+    /// <inheritdoc />
     public void Seek(long offset)
     {
         DoIndent();
@@ -42,8 +58,13 @@ public class AnnotationProxySerdes : ISerdes
         _s.Seek(offset);
     }
 
+    /// <inheritdoc />
     public void Assert(bool condition, string message) => _s.Assert(condition, message);
+
+    /// <inheritdoc />
     public void Pad(int length, byte value) => _s.Pad(length, value); // Don't write anything to the annotation stream for unnamed padding
+
+    /// <inheritdoc />
     public void Pad(string name, int length, byte value)
     {
         var offset = LocalOffset;
@@ -62,6 +83,7 @@ public class AnnotationProxySerdes : ISerdes
         _tw.Write(new string(' ', _indent));
     }
 
+    /// <inheritdoc />
     public void Comment(string msg, bool inline)
     {
         if (!inline)
@@ -72,6 +94,7 @@ public class AnnotationProxySerdes : ISerdes
         else _tw.Write(" // {0}", msg);
     }
 
+    /// <inheritdoc />
     public void Begin(string name)
     {
         DoIndent();
@@ -80,6 +103,7 @@ public class AnnotationProxySerdes : ISerdes
         _offsetStack.Push(Offset);
     }
 
+    /// <inheritdoc />
     public void End()
     {
         _offsetStack.Pop();
@@ -88,7 +112,9 @@ public class AnnotationProxySerdes : ISerdes
         _tw.Write("}");
     }
 
+    /// <inheritdoc />
     public void NewLine() => _tw.WriteLine();
+    /// <inheritdoc />
     public sbyte Int8(int n, sbyte value)
     {
         var offset = LocalOffset;
@@ -98,6 +124,7 @@ public class AnnotationProxySerdes : ISerdes
         return value;
     }
 
+    /// <inheritdoc />
     public short Int16(int n, short value)
     {
         var offset = LocalOffset;
@@ -107,6 +134,7 @@ public class AnnotationProxySerdes : ISerdes
         return value;
     }
 
+    /// <inheritdoc />
     public int Int32(int n, int value)
     {
         var offset = LocalOffset;
@@ -116,6 +144,7 @@ public class AnnotationProxySerdes : ISerdes
         return value;
     }
 
+    /// <inheritdoc />
     public long Int64(int n, long value)
     {
         var offset = LocalOffset;
@@ -125,6 +154,7 @@ public class AnnotationProxySerdes : ISerdes
         return value;
     }
 
+    /// <inheritdoc />
     public byte UInt8(int n, byte value)
     {
         var offset = LocalOffset;
@@ -134,6 +164,7 @@ public class AnnotationProxySerdes : ISerdes
         return value;
     }
 
+    /// <inheritdoc />
     public ushort UInt16(int n, ushort value)
     {
         var offset = LocalOffset;
@@ -143,6 +174,7 @@ public class AnnotationProxySerdes : ISerdes
         return value;
     }
 
+    /// <inheritdoc />
     public uint UInt32(int n, uint value)
     {
         var offset = LocalOffset;
@@ -152,6 +184,7 @@ public class AnnotationProxySerdes : ISerdes
         return value;
     }
 
+    /// <inheritdoc />
     public ulong UInt64(int n, ulong value)
     {
         var offset = LocalOffset;
@@ -161,6 +194,7 @@ public class AnnotationProxySerdes : ISerdes
         return value;
     }
 
+    /// <inheritdoc />
     public sbyte Int8(string name, sbyte value)
     {
         var offset = LocalOffset;
@@ -170,6 +204,7 @@ public class AnnotationProxySerdes : ISerdes
         return value;
     }
 
+    /// <inheritdoc />
     public short Int16(string name, short value)
     {
         var offset = LocalOffset;
@@ -179,6 +214,7 @@ public class AnnotationProxySerdes : ISerdes
         return value;
     }
 
+    /// <inheritdoc />
     public int Int32(string name, int value)
     {
         var offset = LocalOffset;
@@ -188,6 +224,7 @@ public class AnnotationProxySerdes : ISerdes
         return value;
     }
 
+    /// <inheritdoc />
     public long Int64(string name, long value)
     {
         var offset = LocalOffset;
@@ -197,6 +234,7 @@ public class AnnotationProxySerdes : ISerdes
         return value;
     }
 
+    /// <inheritdoc />
     public byte UInt8(string name, byte value)
     {
         var offset = LocalOffset;
@@ -206,6 +244,7 @@ public class AnnotationProxySerdes : ISerdes
         return value;
     }
 
+    /// <inheritdoc />
     public ushort UInt16(string name, ushort value)
     {
         var offset = LocalOffset;
@@ -215,6 +254,7 @@ public class AnnotationProxySerdes : ISerdes
         return value;
     }
 
+    /// <inheritdoc />
     public uint UInt32(string name, uint value)
     {
         var offset = LocalOffset;
@@ -224,6 +264,7 @@ public class AnnotationProxySerdes : ISerdes
         return value;
     }
 
+    /// <inheritdoc />
     public ulong UInt64(string name, ulong value)
     {
         var offset = LocalOffset;
@@ -234,8 +275,11 @@ public class AnnotationProxySerdes : ISerdes
         return value;
     }
 
+    /// <inheritdoc />
     public T EnumU8<T>(int n, T value) where T : unmanaged, Enum
         => EnumU8(n.ToString(CultureInfo.InvariantCulture), value);
+
+    /// <inheritdoc />
     public T EnumU8<T>(string name, T value) where T : unmanaged, Enum
     {
         var offset = LocalOffset;
@@ -246,8 +290,11 @@ public class AnnotationProxySerdes : ISerdes
         return value;
     }
 
+    /// <inheritdoc />
     public T EnumU16<T>(int n, T value) where T : unmanaged, Enum
         => EnumU16(n.ToString(CultureInfo.InvariantCulture), value);
+
+    /// <inheritdoc />
     public T EnumU16<T>(string name, T value) where T : unmanaged, Enum
     {
         var offset = LocalOffset;
@@ -258,8 +305,11 @@ public class AnnotationProxySerdes : ISerdes
         return value;
     }
 
+    /// <inheritdoc />
     public T EnumU32<T>(int n, T value) where T : unmanaged, Enum
         => EnumU32(n.ToString(CultureInfo.InvariantCulture), value);
+
+    /// <inheritdoc />
     public T EnumU32<T>(string name, T value) where T : unmanaged, Enum
     {
         var offset = LocalOffset;
@@ -270,6 +320,7 @@ public class AnnotationProxySerdes : ISerdes
         return value;
     }
 
+    /// <inheritdoc />
     public Guid Guid(string name, Guid value)
     {
         var offset = LocalOffset;
@@ -279,6 +330,7 @@ public class AnnotationProxySerdes : ISerdes
         return value;
     }
 
+    /// <inheritdoc />
     public byte[] Bytes(string name, byte[] value, int n)
     {
         var offset = LocalOffset;
@@ -331,8 +383,7 @@ public class AnnotationProxySerdes : ISerdes
 
             _tw.Write("{0:X2}", b);
 
-            if (b >= (byte)' ' && b <= 0x7e) sb.Append(Convert.ToChar(b));
-            else sb.Append('.');
+            sb.Append(b is >= (byte)' ' and <= 0x7e ? Convert.ToChar(b) : '.');
 
             payloadOffset += 1;
         }
@@ -348,6 +399,7 @@ public class AnnotationProxySerdes : ISerdes
         _indent -= 4;
     }
 
+    /// <inheritdoc />
     public string NullTerminatedString(string name, string value)
     {
         value ??= string.Empty;
@@ -358,6 +410,7 @@ public class AnnotationProxySerdes : ISerdes
         return value;
     }
 
+    /// <inheritdoc />
     public string FixedLengthString(string name, string value, int length)
     {
         value ??= string.Empty;
@@ -367,22 +420,25 @@ public class AnnotationProxySerdes : ISerdes
         _tw.Write("{0:X} {1} = \"{2}\"", offset, name, value);
 
         var bytes = _stringToBytes(value);
-        if (bytes.Length > length + 1) throw new InvalidOperationException("Tried to write overlength string");
+        if (bytes.Length > length + 1) throw new InvalidOperationException("Tried to write over-length string");
         return value;
     }
 
+    /// <inheritdoc />
     public IList<TTarget> List<TTarget>(
         string name, IList<TTarget> list, int count,
         SerdesMethod<TTarget> serializer,
         Func<int, IList<TTarget>> initialiser = null)
         => List(name, list, count, 0, serializer, initialiser);
 
+    /// <inheritdoc />
     public IList<TTarget> ListWithContext<TTarget, TContext>(
         string name, IList<TTarget> list, TContext context, int count,
         SerdesContextMethod<TTarget, TContext> serializer,
         Func<int, IList<TTarget>> initialiser = null)
         => ListWithContext(name, list, context, count, 0, serializer, initialiser);
 
+    /// <inheritdoc />
     public IList<TTarget> List<TTarget>(
         string name,
         IList<TTarget> list,
@@ -398,6 +454,7 @@ public class AnnotationProxySerdes : ISerdes
         return result;
     }
 
+    /// <inheritdoc />
     public IList<TTarget> ListWithContext<TTarget, TContext>(
         string name,
         IList<TTarget> list,

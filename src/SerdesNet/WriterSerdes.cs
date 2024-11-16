@@ -5,6 +5,13 @@ using System.Runtime.CompilerServices;
 
 namespace SerdesNet;
 
+/// <summary>
+/// A serializer that writes data to a <see cref="BinaryWriter"/>
+/// </summary>
+/// <param name="bw">The binary writer to write to</param>
+/// <param name="stringToBytes">A method to convert a string into a sequence of bytes using the desired encoding</param>
+/// <param name="assertionFailed">An optional callback to be invoked when an assertion failure occurs</param>
+/// <param name="disposeAction">An optional callback to be invoked when the <see cref="WriterSerdes"/> is disposed</param>
 public class WriterSerdes(
     BinaryWriter bw,
     Func<string, byte[]> stringToBytes,
@@ -15,87 +22,121 @@ public class WriterSerdes(
     readonly Func<string, byte[]> _stringToBytes = stringToBytes ?? throw new ArgumentNullException(nameof(stringToBytes));
     readonly BinaryWriter _bw = bw ?? throw new ArgumentNullException(nameof(bw));
 
+    /// <inheritdoc />
     public SerializerFlags Flags => SerializerFlags.Write;
+    /// <inheritdoc />
     public long BytesRemaining => int.MaxValue;
+    /// <inheritdoc />
     public void Comment(string msg, bool inline) { }
+    /// <inheritdoc />
     public void Begin(string name = null) { }
+    /// <inheritdoc />
     public void End() { }
+    /// <inheritdoc />
     public void NewLine() { }
 
+    /// <inheritdoc />
     public long Offset => _bw.BaseStream.Position;
 
-    public void Seek(long newOffset)
-    {
-        _bw.Seek((int)newOffset, SeekOrigin.Begin);
-    }
+    /// <inheritdoc />
+    public void Seek(long newOffset) => _bw.Seek((int)newOffset, SeekOrigin.Begin);
 
+    /// <inheritdoc />
     public void Pad(int bytes, byte value) => Pad(null, bytes, value);
+
+    /// <inheritdoc />
     public void Pad(string name, int count, byte value)
     {
         for (int i = 0; i < count; i++)
             _bw.Write(value);
     }
 
+    /// <inheritdoc />
     public sbyte Int8(int n, sbyte value) { _bw.Write(value);  return value; }
+    /// <inheritdoc />
     public short Int16(int n, short value) { _bw.Write(value);  return value; }
+    /// <inheritdoc />
     public int Int32(int n, int value) { _bw.Write(value);  return value; }
+    /// <inheritdoc />
     public long Int64(int n, long value) { _bw.Write(value);  return value; }
+    /// <inheritdoc />
     public byte UInt8(int n, byte value) { _bw.Write(value);  return value; }
+    /// <inheritdoc />
     public ushort UInt16(int n, ushort value) { _bw.Write(value);  return value; }
+    /// <inheritdoc />
     public uint UInt32(int n, uint value) { _bw.Write(value);  return value; }
+    /// <inheritdoc />
     public ulong UInt64(int n, ulong value) { _bw.Write(value);  return value; }
 
+    /// <inheritdoc />
     public sbyte Int8(string name, sbyte value) { _bw.Write(value);  return value; }
+    /// <inheritdoc />
     public short Int16(string name, short value) { _bw.Write(value);  return value; }
+    /// <inheritdoc />
     public int Int32(string name, int value) { _bw.Write(value);  return value; }
+    /// <inheritdoc />
     public long Int64(string name, long value) { _bw.Write(value);  return value; }
+    /// <inheritdoc />
     public byte UInt8(string name, byte value) { _bw.Write(value);  return value; }
+    /// <inheritdoc />
     public ushort UInt16(string name, ushort value) { _bw.Write(value);  return value; }
+    /// <inheritdoc />
     public uint UInt32(string name, uint value) { _bw.Write(value);  return value; }
+    /// <inheritdoc />
     public ulong UInt64(string name, ulong value) { _bw.Write(value);  return value; }
 
+    /// <inheritdoc />
     public T EnumU8<T>(int n, T value) where T : unmanaged, Enum => EnumU8(null, value);
+    /// <inheritdoc />
     public T EnumU8<T>(string name, T value) where T : unmanaged, Enum
     {
         _bw.Write(SerdesUtil.EnumToByte(value));
         return value;
     }
 
+    /// <inheritdoc />
     public T EnumU16<T>(int n, T value) where T : unmanaged, Enum => EnumU16(null, value);
+    /// <inheritdoc />
     public T EnumU16<T>(string name, T value) where T : unmanaged, Enum
     {
         _bw.Write(SerdesUtil.EnumToUShort(value));
         return value;
     }
 
+    /// <inheritdoc />
     public T EnumU32<T>(int n, T value) where T : unmanaged, Enum => EnumU32(null, value);
+    /// <inheritdoc />
     public T EnumU32<T>(string name, T value) where T : unmanaged, Enum
     {
         _bw.Write(SerdesUtil.EnumToUInt(value));
         return value;
     }
 
+    /// <inheritdoc />
     public Guid Guid(string name, Guid value)
     {
         _bw.Write(value.ToByteArray());
         return value;
     }
 
+    /// <inheritdoc />
     public byte[] Bytes(string name, byte[] value, int n)
     {
-        if (value != null && value.Length > 0)
+        if (value is { Length: > 0 })
             _bw.Write(value, 0, n);
         return value;
     }
 
 #if NETSTANDARD2_1_OR_GREATER
-        public void Bytes(string name, Span<byte> value)
-        {
-            if (value.Length > 0)
-                _bw.Write(value);
-        }
+    /// <inheritdoc />
+    public void Bytes(string name, Span<byte> value)
+    {
+        if (value.Length > 0)
+            _bw.Write(value);
+    }
 #endif
 
+    /// <inheritdoc />
     public string NullTerminatedString(string name, string value)
     {
         value ??= string.Empty;
@@ -105,6 +146,7 @@ public class WriterSerdes(
         return value;
     }
 
+    /// <inheritdoc />
     public string FixedLengthString(string name, string value, int length)
     {
         value ??= string.Empty;
@@ -120,18 +162,21 @@ public class WriterSerdes(
         return value;
     }
 
+    /// <inheritdoc />
     public IList<TTarget> List<TTarget>(
         string name, IList<TTarget> list, int count,
         SerdesMethod<TTarget> serializer,
         Func<int, IList<TTarget>> initialiser = null)
         => List(name, list, count, 0, serializer, initialiser);
 
+    /// <inheritdoc />
     public IList<TTarget> ListWithContext<TTarget, TContext>(
         string name, IList<TTarget> list, TContext context, int count,
         SerdesContextMethod<TTarget, TContext> serializer,
         Func<int, IList<TTarget>> initialiser = null)
         => ListWithContext(name, list, context, count, 0, serializer, initialiser);
 
+    /// <inheritdoc />
     public IList<TTarget> List<TTarget>(
         string name,
         IList<TTarget> list,
@@ -146,6 +191,7 @@ public class WriterSerdes(
         return list;
     }
 
+    /// <inheritdoc />
     public IList<TTarget> ListWithContext<TTarget, TContext>(
         string name,
         IList<TTarget> list,
@@ -171,10 +217,16 @@ public class WriterSerdes(
         assertionFailed?.Invoke(formatted);
     }
 
+    /// <summary>
+    /// The actual implementation of <see cref="IDisposable.Dispose"/>
+    /// </summary>
+    /// <param name="disposing"></param>
     protected virtual void Dispose(bool disposing)
     {
         if (disposing)
             disposeAction?.Invoke();
     }
+
+    /// <inheritdoc />
     public void Dispose() => Dispose(true);
 }

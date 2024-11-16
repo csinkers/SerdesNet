@@ -2,22 +2,28 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <LangVersion>12</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <Title>SerdesNet</Title>
     <Authors>Cam Sinclair</Authors>
     <Description>A .NET serialisation library where the same function can both serialize and deserialize (i.e. Serdes = SERialize-DESerialize)</Description>
     <Copyright>2020 Cam Sinclair</Copyright>
+
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>SerdesNet</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>serialisation serialization</PackageTags>
     <PackageProjectUrl>https://github.com/csinkers/SerdesNet</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
     <RepositoryUrl>https://github.com/csinkers/SerdesNet</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <LangVersion>12</LangVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Title>SerdesNet</Title>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <IncludeSymbols>True</IncludeSymbols>
-    <Version>3.0.0</Version>
+
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <EmbedAllSources>true</EmbedAllSources>
+    <DebugType>Embedded</DebugType>
+    <Version>3.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>

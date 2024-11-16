@@ -6,7 +6,7 @@ using Xunit;
 
 namespace SerdesNet.Tests;
 
-public class ReadTests
+public class ReaderSerdesTests
 {
     static ISerdes Read(byte[] buffer, Action<string> assertHandler = null)
     {
