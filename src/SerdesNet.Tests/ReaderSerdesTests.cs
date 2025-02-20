@@ -22,115 +22,114 @@ public class ReaderSerdesTests
     [Fact]
     public void Int8Test()
     {
-        Assert.Equal(0, Read(new byte[] {0}).Int8("", 0));
-        Assert.Equal(1, Read(new byte[] { 1 }).Int8("", 0));
-        Assert.Equal(127, Read(new byte[] { 127 }).Int8("", 0));
-        Assert.Equal(-128, Read(new byte[] { 128 }).Int8("", 0));
-        Assert.Equal(-1, Read(new byte[] { 255 }).Int8("", 0));
+        Assert.Equal(0, Read([0]).Int8("", 0));
+        Assert.Equal(1, Read([1]).Int8("", 0));
+        Assert.Equal(127, Read([127]).Int8("", 0));
+        Assert.Equal(-128, Read([128]).Int8("", 0));
+        Assert.Equal(-1, Read([255]).Int8("", 0));
     }
 
     [Fact]
     public void UInt8Test()
     {
-        Assert.Equal(0, Read(new byte[] { 0 }).UInt8("", 0));
-        Assert.Equal(1, Read(new byte[] { 1 }).UInt8("", 0));
-        Assert.Equal(127, Read(new byte[] { 127 }).UInt8("", 0));
-        Assert.Equal(128, Read(new byte[] { 128 }).UInt8("", 0));
-        Assert.Equal(255, Read(new byte[] { 255 }).UInt8("", 0));
+        Assert.Equal(0, Read([0]).UInt8("", 0));
+        Assert.Equal(1, Read([1]).UInt8("", 0));
+        Assert.Equal(127, Read([127]).UInt8("", 0));
+        Assert.Equal(128, Read([128]).UInt8("", 0));
+        Assert.Equal(255, Read([255]).UInt8("", 0));
     }
 
     [Fact]
     public void Int16Test()
     {
-        Assert.Equal(0, Read(new byte[] { 0, 0 }).Int16("", 0));
-        Assert.Equal(1, Read(new byte[] { 1, 0 }).Int16("", 0));
-        Assert.Equal(32767, Read(new byte[] { 255, 127 }).Int16("", 0));
-        Assert.Equal(-32768, Read(new byte[] { 0, 128 }).Int16("", 0));
-        Assert.Equal(-1, Read(new byte[] { 255, 255 }).Int16("", 0));
+        Assert.Equal(0, Read([0, 0]).Int16("", 0));
+        Assert.Equal(1, Read([1, 0]).Int16("", 0));
+        Assert.Equal(32767, Read([255, 127]).Int16("", 0));
+        Assert.Equal(-32768, Read([0, 128]).Int16("", 0));
+        Assert.Equal(-1, Read([255, 255]).Int16("", 0));
     }
 
     [Fact]
     public void UInt16Test()
     {
-        Assert.Equal(0, Read(new byte[] { 0, 0 }).UInt16("", 0));
-        Assert.Equal(1, Read(new byte[] { 1, 0 }).UInt16("", 0));
-        Assert.Equal(32767, Read(new byte[] { 255, 127 }).UInt16("", 0));
-        Assert.Equal(32768, Read(new byte[] { 0, 128 }).UInt16("", 0));
-        Assert.Equal(65535, Read(new byte[] { 255, 255 }).UInt16("", 0));
+        Assert.Equal(0, Read([0, 0]).UInt16("", 0));
+        Assert.Equal(1, Read([1, 0]).UInt16("", 0));
+        Assert.Equal(32767, Read([255, 127]).UInt16("", 0));
+        Assert.Equal(32768, Read([0, 128]).UInt16("", 0));
+        Assert.Equal(65535, Read([255, 255]).UInt16("", 0));
     }
 
     [Fact]
     public void Int32Test()
     {
-        Assert.Equal(0, Read(new byte[] { 0, 0, 0, 0 }).Int32("", 0));
-        Assert.Equal(1, Read(new byte[] { 1, 0, 0, 0 }).Int32("", 0));
-        Assert.Equal(0x7fffffff, Read(new byte[] { 255, 255, 255, 127 }).Int32("", 0));
-        Assert.Equal(-0x80000000, Read(new byte[] { 0, 0, 0, 128 }).Int32("", 0));
-        Assert.Equal(-1, Read(new byte[] { 255, 255, 255, 255 }).Int32("", 0));
+        Assert.Equal(0, Read([0, 0, 0, 0]).Int32("", 0));
+        Assert.Equal(1, Read([1, 0, 0, 0]).Int32("", 0));
+        Assert.Equal(0x7fffffff, Read([255, 255, 255, 127]).Int32("", 0));
+        Assert.Equal(-0x80000000, Read([0, 0, 0, 128]).Int32("", 0));
+        Assert.Equal(-1, Read([255, 255, 255, 255]).Int32("", 0));
     }
 
     [Fact]
     public void UInt32Test()
     {
-        Assert.Equal(0u, Read(new byte[] { 0, 0, 0, 0 }).UInt32("", 0));
-        Assert.Equal(1u, Read(new byte[] { 1, 0, 0, 0 }).UInt32("", 0));
-        Assert.Equal(0x7fffffffu, Read(new byte[] { 255, 255, 255, 127 }).UInt32("", 0));
-        Assert.Equal(0x80000000, Read(new byte[] { 0, 0, 0, 128 }).UInt32("", 0));
-        Assert.Equal(uint.MaxValue, Read(new byte[] { 255, 255, 255, 255 }).UInt32("", 0));
+        Assert.Equal(0u, Read([0, 0, 0, 0]).UInt32("", 0));
+        Assert.Equal(1u, Read([1, 0, 0, 0]).UInt32("", 0));
+        Assert.Equal(0x7fffffffu, Read([255, 255, 255, 127]).UInt32("", 0));
+        Assert.Equal(0x80000000, Read([0, 0, 0, 128]).UInt32("", 0));
+        Assert.Equal(uint.MaxValue, Read([255, 255, 255, 255]).UInt32("", 0));
     }
 
     [Fact]
     public void Int64Test()
     {
-        Assert.Equal(0, Read(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0 }).Int64("", 0));
-        Assert.Equal(1, Read(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0 }).Int64("", 0));
-        Assert.Equal(0x7fffffff_ffffffff, Read(new byte[] { 255, 255, 255, 255, 255, 255, 255, 127 }).Int64("", 0));
-        Assert.Equal(-0x80000000_00000000, Read(new byte[] { 0,0,0,0,0,0,0,128 }).Int64("", 0));
-        Assert.Equal(-1, Read(new byte[] { 255, 255, 255, 255, 255, 255, 255, 255 }).Int64("", 0));
+        Assert.Equal(0, Read([0, 0, 0, 0, 0, 0, 0, 0]).Int64("", 0));
+        Assert.Equal(1, Read([1, 0, 0, 0, 0, 0, 0, 0]).Int64("", 0));
+        Assert.Equal(0x7fffffff_ffffffff, Read([255, 255, 255, 255, 255, 255, 255, 127]).Int64("", 0));
+        Assert.Equal(-0x80000000_00000000, Read([0,0,0,0,0,0,0,128]).Int64("", 0));
+        Assert.Equal(-1, Read([255, 255, 255, 255, 255, 255, 255, 255]).Int64("", 0));
     }
 
     [Fact]
     public void UInt64Test()
     {
-        Assert.Equal(0uL, Read(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0 }).UInt64("", 0));
-        Assert.Equal(1uL, Read(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0 }).UInt64("", 0));
-        Assert.Equal(0x7fffffff_ffffffffuL, Read(new byte[] { 255, 255, 255, 255, 255, 255, 255, 127 }).UInt64("", 0));
-        Assert.Equal(0x80000000_00000000uL, Read(new byte[] { 0,0,0,0,0,0,0,128 }).UInt64("", 0));
-        Assert.Equal(ulong.MaxValue, Read(new byte[] { 255, 255, 255, 255, 255, 255, 255, 255 }).UInt64("", 0));
+        Assert.Equal(0uL, Read([0, 0, 0, 0, 0, 0, 0, 0]).UInt64("", 0));
+        Assert.Equal(1uL, Read([1, 0, 0, 0, 0, 0, 0, 0]).UInt64("", 0));
+        Assert.Equal(0x7fffffff_ffffffffuL, Read([255, 255, 255, 255, 255, 255, 255, 127]).UInt64("", 0));
+        Assert.Equal(0x80000000_00000000uL, Read([0,0,0,0,0,0,0,128]).UInt64("", 0));
+        Assert.Equal(ulong.MaxValue, Read([255, 255, 255, 255, 255, 255, 255, 255]).UInt64("", 0));
     }
 
     [Fact]
     public void FixedLengthStringTest()
     {
-        Assert.Equal("A", Read(new byte[] { 65 }).FixedLengthString("", "", 1));
+        Assert.Equal("A", Read([65]).FixedLengthString("", "", 1));
         Assert.Throws<EndOfStreamException>(() =>
         {
-            Read(new byte[] { 65 }).FixedLengthString("", "", 2);
+            Read([65]).FixedLengthString("", "", 2);
         });
     }
 
     [Fact]
     public void NullTerminatedStringTest()
     {
-        Assert.Equal("A", Read(new byte[] { 65, 0 }).NullTerminatedString("", ""));
+        Assert.Equal("A", Read([65, 0]).NullTerminatedString("", ""));
     }
 
     [Fact]
     public void GuidTest()
     {
         Assert.Equal(Guid.Parse("{FA6FA50D-BE6F-4736-87DF-E17280F14248}"),
-            Read(new byte[]
-            {
+            Read([
                 0x0d, 0xa5, 0x6f, 0xfa,
                 0x6f, 0xbe,
                 0x36, 0x47,
                 0x87, 0xdf,
                 0xe1, 0x72, 0x80, 0xf1, 0x42, 0x48
-            }).Guid("", Guid.Empty));
+            ]).Guid("", Guid.Empty));
 
         Assert.Throws<EndOfStreamException>(() =>
         {
-            Read(new byte[] { 1, 2, 3, 4 }).Guid("", Guid.Empty);
+            Read([1, 2, 3, 4]).Guid("", Guid.Empty);
         });
     }
 
@@ -139,7 +138,7 @@ public class ReaderSerdesTests
     {
         static byte UInt8Serdes(int i, byte v, ISerdes s) => s.UInt8("", v);
         Assert.Collection(
-            Read(new byte[] { 1, 2, 3 })
+            Read([1, 2, 3])
                 .List("", null, 3, UInt8Serdes, x => new byte[x]),
             x => Assert.Equal(1, x),
             x => Assert.Equal(2, x),
@@ -147,7 +146,7 @@ public class ReaderSerdesTests
         );
 
         Assert.Collection(
-            Read(new byte[] { 1, 2, 3 })
+            Read([1, 2, 3])
                 .List("", null, 3, UInt8Serdes, _ => new List<byte>()),
             x => Assert.Equal(1, x),
             x => Assert.Equal(2, x),
@@ -156,11 +155,11 @@ public class ReaderSerdesTests
 
         Assert.Throws<EndOfStreamException>(() =>
         {
-            Read(new byte[] { 1, 2, 3 }).List("", null, 4, UInt8Serdes, _ => new List<byte>());
+            Read([1, 2, 3]).List("", null, 4, UInt8Serdes, _ => new List<byte>());
         });
 
         Assert.Collection(
-            Read(new byte[] { 1, 2, 3 })
+            Read([1, 2, 3])
                 .List("", null, 3, 1, UInt8Serdes, _ => new List<byte>()),
             x => Assert.Equal(1, x),
             x => Assert.Equal(1, x),
@@ -170,7 +169,7 @@ public class ReaderSerdesTests
 
         var l = new List<byte> { 5 };
         Assert.Collection(
-            Read(new byte[] { 1, 2, 3 })
+            Read([1, 2, 3])
                 .List("", l, 3, 1, UInt8Serdes, _ => throw new InvalidOperationException()),
             x => Assert.Equal(5, x),
             x => Assert.Equal(1, x),
@@ -180,7 +179,7 @@ public class ReaderSerdesTests
 
         var a = new byte[4];
         Assert.Collection(
-            Read(new byte[] { 1, 2, 3 })
+            Read([1, 2, 3])
                 .List("", a, 3, 1, UInt8Serdes, _ => throw new InvalidOperationException()),
             x => Assert.Equal(0, x),
             x => Assert.Equal(1, x),
@@ -192,25 +191,25 @@ public class ReaderSerdesTests
     [Fact]
     public void RepeatTest()
     {
-        Read(new byte[] { 0, 0, 0, 0 }).Pad("", 4);
-        Read(new byte[] { 1, 1, 1, 1 }).Pad("", 4, 1);
-        Read(new byte[] { 1, 1, 1, 1 }).Pad("", 1, 1);
+        Read([0, 0, 0, 0]).Pad("", 4);
+        Read([1, 1, 1, 1]).Pad("", 4, 1);
+        Read([1, 1, 1, 1]).Pad("", 1, 1);
 
         Assert.Throws<InvalidOperationException>(() =>
         {
-            Read(new byte[] { 0, 0, 1, 0 }).Pad("", 4);
+            Read([0, 0, 1, 0]).Pad("", 4);
         });
 
         Assert.Throws<EndOfStreamException>(() =>
         {
-            Read(new byte[] { 0, 0, 0, 0 }).Pad("", 5);
+            Read([0, 0, 0, 0]).Pad("", 5);
         });
     }
 
     [Fact]
     public void ByteArrayTest()
     {
-        Assert.Collection(Read(new byte[] { 0, 1, 2, 3 }).Bytes("", null, 4),
+        Assert.Collection(Read([0, 1, 2, 3]).Bytes("", null, 4),
             x => Assert.Equal(0, x),
             x => Assert.Equal(1, x),
             x => Assert.Equal(2, x),
@@ -218,10 +217,10 @@ public class ReaderSerdesTests
         );
         Assert.Throws<EndOfStreamException>(() =>
         {
-            Read(new byte[] { 0, 1, 2, 3 }).Bytes("", null, 5);
+            Read([0, 1, 2, 3]).Bytes("", null, 5);
         });
 
-        Assert.Collection(Read(new byte[] { 0, 1, 2, 3 }).Bytes("", null, 4),
+        Assert.Collection(Read([0, 1, 2, 3]).Bytes("", null, 4),
             x => Assert.Equal(0, x),
             x => Assert.Equal(1, x),
             x => Assert.Equal(2, x),
@@ -229,14 +228,14 @@ public class ReaderSerdesTests
         );
         Assert.Throws<EndOfStreamException>(() =>
         {
-            Read(new byte[] { 0, 1, 2, 3 }).Bytes("", null, 5);
+            Read([0, 1, 2, 3]).Bytes("", null, 5);
         });
     }
 
     [Fact]
     public void OffsetTests()
     {
-        Assert.Equal(SerializerFlags.Read, Read(new byte[] { 0 }).Flags);
+        Assert.Equal(SerializerFlags.Read, Read([0]).Flags);
         var buf = new byte[] {0, 1, 2, 3, 4, 5, 6, 7};
         var s = Read(buf);
         Assert.Equal(buf.Length, s.BytesRemaining);
@@ -265,7 +264,7 @@ public class ReaderSerdesTests
     public void EnumTests()
     {
         Assert.Collection(
-            Read(new byte[] { 0, 1, 2, 3, 0xff })
+            Read([0, 1, 2, 3, 0xff])
                 .List<ByteEnum>("", null, 5, (n, v, s) => s.EnumU8(n, v)),
 
             x => Assert.Equal(ByteEnum.None, x),
@@ -276,7 +275,7 @@ public class ReaderSerdesTests
         );
 
         Assert.Collection(
-            Read(new byte[] {  0, 0, 1, 0, 2, 0, 3, 0, 0xff, 0xff })
+            Read([0, 0, 1, 0, 2, 0, 3, 0, 0xff, 0xff])
                 .List<UShortEnum>("", null, 5, (n, v, s) => s.EnumU16(n, v)),
 
             x => Assert.Equal(UShortEnum.None, x),
@@ -287,14 +286,13 @@ public class ReaderSerdesTests
         );
 
         Assert.Collection(
-            Read(new byte[]
-            {
+            Read([
                 0,0,0,0,
                 1,0,0,0, 
                 2,0,0,0, 
                 3,0,0,0, 
-                0xff, 0xff, 0xff, 0xff,
-            }).List<UIntEnum>("", null, 5, (n, v, s) => s.EnumU32(n, v)),
+                0xff, 0xff, 0xff, 0xff
+            ]).List<UIntEnum>("", null, 5, (n, v, s) => s.EnumU32(n, v)),
             x => Assert.Equal(UIntEnum.None, x),
             x => Assert.Equal(UIntEnum.Some, x),
             x => Assert.Equal(UIntEnum.Both, x),
@@ -308,5 +306,33 @@ public class ReaderSerdesTests
     {
         var ex = Read(Example.ExampleBuffer).Object<Example>("", null, Example.Serdes);
         ex.Verify(m => throw new InvalidOperationException(m));
+    }
+
+    [Fact]
+    public void Dispose_ShouldInvokeDisposeAction()
+    {
+        // Arrange
+        var disposeActionCalled = false;
+        Action disposeAction = () => disposeActionCalled = true;
+        var reader = new BinaryReader(new MemoryStream());
+        var serdes = new ReaderSerdes(reader, 100, Encoding.UTF8.GetString, disposeAction: disposeAction);
+
+        // Act
+        serdes.Dispose();
+
+        // Assert
+        Assert.True(disposeActionCalled);
+    }
+
+    [Fact]
+    public void Dispose_ShouldNotThrow_WhenDisposeActionIsNull()
+    {
+        // Arrange
+        var reader = new BinaryReader(new MemoryStream());
+        var serdes = new ReaderSerdes(reader, 100, Encoding.UTF8.GetString);
+
+        // Act & Assert
+        var exception = Record.Exception(serdes.Dispose);
+        Assert.Null(exception);
     }
 }

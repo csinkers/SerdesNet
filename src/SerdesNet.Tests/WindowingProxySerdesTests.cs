@@ -10,9 +10,9 @@ namespace SerdesNet.Tests;
 public class WindowingProxySerdesTests
 {
     static byte[] SeqBytes => Enumerable.Range(0, 16).Select(x => (byte)x).ToArray();
-    static byte[] SeqShorts => new byte[] { 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0 };
-    static byte[] SeqInts => new byte[] { 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0 };
-    static byte[] SeqLongs => new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0 };
+    static byte[] SeqShorts => [0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0];
+    static byte[] SeqInts => [0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0];
+    static byte[] SeqLongs => [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0];
 
     static ISerdes Reader(byte[] bytes) => new ReaderSerdes(bytes, Encoding.Latin1.GetString);
 
@@ -310,7 +310,7 @@ public class WindowingProxySerdesTests
         var outer = new WindowingProxySerdes(inner, 8);
         var list = new List<int>();
         outer.List("test", list, 4, (i, _, s) => s.UInt8(i, 0));
-        Assert.Equal(new List<int> { 0, 1, 2, 3 }, list);
+        Assert.Equal([0, 1, 2, 3], list);
     }
 
     [Fact]
@@ -320,7 +320,7 @@ public class WindowingProxySerdesTests
         var outer = new WindowingProxySerdes(inner, 8);
         var list = new List<int>();
         outer.List("test", list, 4, 4, (i, _, s) => s.UInt8(i, 0));
-        Assert.Equal(new List<int> { 0, 0, 0, 0, 0, 1, 2, 3 }, list);
+        Assert.Equal([0, 0, 0, 0, 0, 1, 2, 3], list);
     }
 
     [Fact]
@@ -330,7 +330,7 @@ public class WindowingProxySerdesTests
         var outer = new WindowingProxySerdes(inner, 8);
         var list = new List<int>();
         outer.ListWithContext("test", list, 1, 4, (i, _, ctx, s) => s.UInt8(i, 0) + ctx);
-        Assert.Equal(new List<int> { 1, 2, 3, 4 }, list);
+        Assert.Equal([1, 2, 3, 4], list);
     }
 
     [Fact]
@@ -340,7 +340,7 @@ public class WindowingProxySerdesTests
         var outer = new WindowingProxySerdes(inner, 8);
         var list = new List<int>() { 0, 0, 0, 0, 0, 0};
         outer.ListWithContext("test", list, 1, 4, 2, (i, _, ctx, s) => s.UInt8(i, 0) + ctx);
-        Assert.Equal(new List<int> {0, 0, 1, 2, 3, 4}, list);
+        Assert.Equal([0, 0, 1, 2, 3, 4], list);
     }
 
     enum TestEnum

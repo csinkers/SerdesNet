@@ -34,7 +34,8 @@ public enum UIntEnum : uint
 
 public class Example
 {
-    public static readonly byte[] ExampleBuffer = {
+    public static readonly byte[] ExampleBuffer =
+    [
         255, 1, 254, 255, 2, 0, 
         253,255,255,255,
         3,0,0,0,
@@ -51,7 +52,7 @@ public class Example
         0x36, 0x47,
         0x87, 0xdf,
         0xe1, 0x72, 0x80, 0xf1, 0x42, 0x48
-    };
+    ];
 
     public void Verify(Action<string> failed)
     {

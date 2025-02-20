@@ -10,7 +10,6 @@
     <Description>A .NET serialisation library where the same function can both serialize and deserialize (i.e. Serdes = SERialize-DESerialize)</Description>
     <Copyright>2020 Cam Sinclair</Copyright>
 
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>SerdesNet</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>serialisation serialization</PackageTags>
@@ -23,7 +22,7 @@
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <EmbedAllSources>true</EmbedAllSources>
     <DebugType>Embedded</DebugType>
-    <Version>3.0.1</Version>
+    <Version>3.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

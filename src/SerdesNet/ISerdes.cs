@@ -429,7 +429,7 @@ public static class SerializerExtensions
     // ReSharper disable InconsistentNaming
 
     /// <summary>
-    /// (De)serializes a (big-endian) signed 16-bit integer (i.e. a signed short in the range -32768..32767).
+    /// (De)serializes a signed (big-endian) 16-bit integer (i.e. a signed short in the range -32768..32767).
     /// </summary>
     /// <param name="s">The serdes instance</param>
     /// <param name="n">The index of the value being written, only used for annotation</param>
@@ -438,7 +438,7 @@ public static class SerializerExtensions
     public static short Int16BE(this ISerdes s, int n, short value) => SwapBytes16(s.Int16(n, SwapBytes16(value)));
 
     /// <summary>
-    /// (De)serializes a (big-endian) signed 32-bit integer (i.e. a signed int in the range -2147483648..2147483647).
+    /// (De)serializes a signed (big-endian) 32-bit integer (i.e. a signed int in the range -2147483648..2147483647).
     /// </summary>
     /// <param name="s">The serdes instance</param>
     /// <param name="n">The index of the value being written, only used for annotation</param>
@@ -447,7 +447,7 @@ public static class SerializerExtensions
     public static int Int32BE(this ISerdes s, int n, int value) => SwapBytes32(s.Int32(n, SwapBytes32(value)));
 
     /// <summary>
-    /// (De)serializes a (big-endian) signed 64-bit integer (i.e. a signed long in the range -9223372036854775808..9223372036854775807).
+    /// (De)serializes a signed (big-endian) 64-bit integer (i.e. a signed long in the range -9223372036854775808..9223372036854775807).
     /// </summary>
     /// <param name="s">The serdes instance</param>
     /// <param name="n">The index of the value being written, only used for annotation</param>
@@ -456,7 +456,7 @@ public static class SerializerExtensions
     public static long Int64BE(this ISerdes s, int n, long value) => SwapBytes64(s.Int64(n, SwapBytes64(value)));
 
     /// <summary>
-    /// (De)serializes an (big-endian) unsigned 16-bit integer (i.e. an unsigned short in the range 0..65535).
+    /// (De)serializes an unsigned (big-endian) 16-bit integer (i.e. an unsigned short in the range 0..65535).
     /// </summary>
     /// <param name="s">The serdes instance</param>
     /// <param name="n">The index of the value being written, only used for annotation</param>
@@ -465,7 +465,7 @@ public static class SerializerExtensions
     public static ushort UInt16BE(this ISerdes s, int n, ushort value) => SwapBytes16(s.UInt16(n, SwapBytes16(value)));
 
     /// <summary>
-    /// (De)serializes an (big-endian) unsigned 32-bit integer (i.e. an unsigned int in the range 0..4294967295).
+    /// (De)serializes an unsigned (big-endian) 32-bit integer (i.e. an unsigned int in the range 0..4294967295).
     /// </summary>
     /// <param name="s">The serdes instance</param>
     /// <param name="n">The index of the value being written, only used for annotation</param>
@@ -474,7 +474,7 @@ public static class SerializerExtensions
     public static uint UInt32BE(this ISerdes s, int n, uint value) => SwapBytes32(s.UInt32(n, SwapBytes32(value)));
 
     /// <summary>
-    /// (De)serializes an (big-endian) unsigned 64-bit integer (i.e. an unsigned long in the range 0..18446744073709551615).
+    /// (De)serializes an unsigned (big-endian) 64-bit integer (i.e. an unsigned long in the range 0..18446744073709551615).
     /// </summary>
     /// <param name="s">The serdes instance</param>
     /// <param name="n">The index of the value being written, only used for annotation</param>

@@ -189,7 +189,7 @@ public class WriterSerdesTests
     public void ByteArrayTest()
     {
         Assert.Equal(new byte[] { 0, 1, 2, 3 },
-            Write(s => s.Bytes("", new byte[] { 0, 1, 2, 3 }, 4)));
+            Write(s => s.Bytes("", [0, 1, 2, 3], 4)));
     }
 
     [Fact]
@@ -227,17 +227,16 @@ public class WriterSerdesTests
     public void EnumTests()
     {
         Assert.Equal(new byte[] { 0, 1, 2, 3, 0xff },
-            Write(s => s.List("", new[]
-            {
+            Write(s => s.List("", [
                 ByteEnum.None,
                 ByteEnum.Some,
                 ByteEnum.Both,
                 ByteEnum.Many,
                 ByteEnum.All
-            }, 5, (n, v, s2) => s2.EnumU8(n, v))));
+            ], 5, (n, v, s2) => s2.EnumU8(n, v))));
 
-        Assert.Equal(new byte[] {  0, 0, 1, 0, 2, 0, 3, 0, 0xff, 0xff },
-            Write(s => s.List("", new List<UShortEnum> 
+        Assert.Equal(new byte[] { 0, 0, 1, 0, 2, 0, 3, 0, 0xff, 0xff },
+            Write(s => s.List("", new List<UShortEnum>
             {
                 UShortEnum.None,
                 UShortEnum.Some,
@@ -256,11 +255,11 @@ public class WriterSerdesTests
             },
             Write(s => s.List("", new List<UIntEnum>
             {
-                UIntEnum.None, 
-                UIntEnum.Some, 
-                UIntEnum.Both, 
-                UIntEnum.Many, 
-                UIntEnum.All, 
+                UIntEnum.None,
+                UIntEnum.Some,
+                UIntEnum.Both,
+                UIntEnum.Many,
+                UIntEnum.All,
             }, 5, (n, v, s2) => s2.EnumU32(n, v))));
     }
 
@@ -269,5 +268,49 @@ public class WriterSerdesTests
     {
         Assert.Equal(Example.ExampleBuffer,
             Write(s => s.Object("test", Example.TestInstance, Example.Serdes)));
+    }
+
+    [Fact]
+    public void Assert_ShouldInvokeAssertionFailedCallback_WhenConditionIsFalse()
+    {
+        // Arrange
+        var assertionFailedCalled = false;
+        string assertionMessage = null;
+        Action<string> assertionFailed = message =>
+        {
+            assertionFailedCalled = true;
+            assertionMessage = message;
+        };
+        var writer = new BinaryWriter(new MemoryStream());
+        var serdes = new WriterSerdes(writer, Encoding.UTF8.GetBytes, assertionFailed);
+
+        // Act
+        serdes.Assert(false, 0, x => "Test assertion" + x);
+
+        // Assert
+        Assert.True(assertionFailedCalled);
+        Assert.Contains("Test assertion0", assertionMessage);
+    }
+
+    [Fact]
+    public void Assert_ShouldNotInvokeAssertionFailedCallback_WhenConditionIsTrue()
+    {
+        // Arrange
+        var assertionFailedCalled = false;
+        string assertionMessage = null;
+        Action<string> assertionFailed = message =>
+        {
+            assertionFailedCalled = true;
+            assertionMessage = message;
+        };
+        var writer = new BinaryWriter(new MemoryStream());
+        var serdes = new WriterSerdes(writer, Encoding.UTF8.GetBytes, assertionFailed);
+
+        // Act
+        serdes.Assert(true, 0, x => "Test assertion" + x);
+
+        // Assert
+        Assert.False(assertionFailedCalled);
+        Assert.Null(assertionMessage);
     }
 }

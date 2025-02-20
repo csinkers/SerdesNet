@@ -173,7 +173,7 @@ public class AnnotationTests
     [Fact]
     public void ByteArrayTest()
     {
-        Assert.Equal("0 name = 00010203", Write(s => s.Bytes("name", new byte[] { 0, 1, 2, 3 }, 4)));
+        Assert.Equal("0 name = 00010203", Write(s => s.Bytes("name", [0, 1, 2, 3], 4)));
         Assert.Equal(
             @"0 name =  
     0000: 0001 0203 0405 0607-0809 0A0B 0C0D 0E0F ................
@@ -247,14 +247,13 @@ public class AnnotationTests
     3 3 = 3 (0x3 uy) // Many
     4 4 = 255 (0xFF uy) // All
 }",
-            Write(s => s.List("name", new[]
-            {
+            Write(s => s.List("name", [
                 ByteEnum.None,
                 ByteEnum.Some,
                 ByteEnum.Both,
                 ByteEnum.Many,
                 ByteEnum.All
-            }, 5, (n, v, s2) => s2.EnumU8(n, v))));
+            ], 5, (n, v, s2) => s2.EnumU8(n, v))));
 
         Assert.Equal(@"0 name: {
     0 0 = 0 (0x0 us) // None
