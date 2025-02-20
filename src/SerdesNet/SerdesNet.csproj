@@ -10,11 +10,13 @@
     <Description>A .NET serialisation library where the same function can both serialize and deserialize (i.e. Serdes = SERialize-DESerialize)</Description>
     <Copyright>2020 Cam Sinclair</Copyright>
 
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>SerdesNet</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>serialisation serialization</PackageTags>
     <PackageProjectUrl>https://github.com/csinkers/SerdesNet</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
 
     <RepositoryUrl>https://github.com/csinkers/SerdesNet</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -38,4 +40,11 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+
+  <Target Name="ApplyGitHubRunNumberToVersion" AfterTargets="MinVer">
+    <PropertyGroup>
+      <GITHUB_RUN_NUMBER Condition="'$(GITHUB_RUN_NUMBER)' == ''">0</GITHUB_RUN_NUMBER>
+      <FileVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(GITHUB_RUN_NUMBER)</FileVersion>
+    </PropertyGroup>
+  </Target>
 </Project>
