@@ -22,7 +22,6 @@
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <EmbedAllSources>true</EmbedAllSources>
     <DebugType>Embedded</DebugType>
-    <Version>3.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,5 +33,9 @@
 
   <ItemGroup>
     <PackageReference Include="System.Memory" Version="4.5.5" />
+    <PackageReference Include="MinVer" Version="6.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 </Project>
