@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -65,7 +64,7 @@ public class AnnotationProxySerdes : ISerdes
     public void Pad(int length, byte value) => _s.Pad(length, value); // Don't write anything to the annotation stream for unnamed padding
 
     /// <inheritdoc />
-    public void Pad(string name, int length, byte value)
+    public void Pad(SerdesName name, int length, byte value)
     {
         var offset = LocalOffset;
         _s.Pad(name, length, value);
@@ -95,7 +94,7 @@ public class AnnotationProxySerdes : ISerdes
     }
 
     /// <inheritdoc />
-    public void Begin(string name)
+    public void Begin(SerdesName name)
     {
         DoIndent();
         _tw.Write($"{LocalOffset:X} {name}: {{");
@@ -114,88 +113,9 @@ public class AnnotationProxySerdes : ISerdes
 
     /// <inheritdoc />
     public void NewLine() => _tw.WriteLine();
-    /// <inheritdoc />
-    public sbyte Int8(int n, sbyte value)
-    {
-        var offset = LocalOffset;
-        value = _s.Int8(n, value);
-        DoIndent();
-        _tw.Write("{0:X} {1} = {2} (0x{2:X} y)", offset, n, value);
-        return value;
-    }
 
     /// <inheritdoc />
-    public short Int16(int n, short value)
-    {
-        var offset = LocalOffset;
-        value = _s.Int16(n, value);
-        DoIndent();
-        _tw.Write("{0:X} {1} = {2} (0x{2:X} s)", offset, n, value);
-        return value;
-    }
-
-    /// <inheritdoc />
-    public int Int32(int n, int value)
-    {
-        var offset = LocalOffset;
-        value = _s.Int32(n, value);
-        DoIndent();
-        _tw.Write("{0:X} {1} = {2} (0x{2:X})", offset, n, value);
-        return value;
-    }
-
-    /// <inheritdoc />
-    public long Int64(int n, long value)
-    {
-        var offset = LocalOffset;
-        value = _s.Int64(n, value);
-        DoIndent();
-        _tw.Write("{0:X} {1} = {2} (0x{2:X} L)", offset, n, value);
-        return value;
-    }
-
-    /// <inheritdoc />
-    public byte UInt8(int n, byte value)
-    {
-        var offset = LocalOffset;
-        value = _s.UInt8(n, value);
-        DoIndent();
-        _tw.Write("{0:X} {1} = {2} (0x{2:X} uy)", offset, n, value);
-        return value;
-    }
-
-    /// <inheritdoc />
-    public ushort UInt16(int n, ushort value)
-    {
-        var offset = LocalOffset;
-        value = _s.UInt16(n, value);
-        DoIndent();
-        _tw.Write("{0:X} {1} = {2} (0x{2:X} us)", offset, n, value);
-        return value;
-    }
-
-    /// <inheritdoc />
-    public uint UInt32(int n, uint value)
-    {
-        var offset = LocalOffset;
-        value = _s.UInt32(n, value);
-        DoIndent();
-        _tw.Write("{0:X} {1} = {2} (0x{2:X} u)", offset, n, value);
-        return value;
-    }
-
-    /// <inheritdoc />
-    public ulong UInt64(int n, ulong value)
-    {
-        var offset = LocalOffset;
-        value = _s.UInt64(n, value);
-        DoIndent();
-        _tw.Write("{0:X} {1} = {2} (0x{2:X} UL)", offset, n, value);
-        return value;
-    }
-
-    /// <inheritdoc />
-    public sbyte Int8(string name, sbyte value)
+    public sbyte Int8(SerdesName name, sbyte value)
     {
         var offset = LocalOffset;
         value = _s.Int8(name, value);
@@ -205,7 +125,7 @@ public class AnnotationProxySerdes : ISerdes
     }
 
     /// <inheritdoc />
-    public short Int16(string name, short value)
+    public short Int16(SerdesName name, short value)
     {
         var offset = LocalOffset;
         value = _s.Int16(name, value);
@@ -215,7 +135,7 @@ public class AnnotationProxySerdes : ISerdes
     }
 
     /// <inheritdoc />
-    public int Int32(string name, int value)
+    public int Int32(SerdesName name, int value)
     {
         var offset = LocalOffset;
         value = _s.Int32(name, value);
@@ -225,7 +145,7 @@ public class AnnotationProxySerdes : ISerdes
     }
 
     /// <inheritdoc />
-    public long Int64(string name, long value)
+    public long Int64(SerdesName name, long value)
     {
         var offset = LocalOffset;
         value = _s.Int64(name, value);
@@ -235,7 +155,7 @@ public class AnnotationProxySerdes : ISerdes
     }
 
     /// <inheritdoc />
-    public byte UInt8(string name, byte value)
+    public byte UInt8(SerdesName name, byte value)
     {
         var offset = LocalOffset;
         value = _s.UInt8(name, value);
@@ -245,7 +165,7 @@ public class AnnotationProxySerdes : ISerdes
     }
 
     /// <inheritdoc />
-    public ushort UInt16(string name, ushort value)
+    public ushort UInt16(SerdesName name, ushort value)
     {
         var offset = LocalOffset;
         value = _s.UInt16(name, value);
@@ -255,7 +175,7 @@ public class AnnotationProxySerdes : ISerdes
     }
 
     /// <inheritdoc />
-    public uint UInt32(string name, uint value)
+    public uint UInt32(SerdesName name, uint value)
     {
         var offset = LocalOffset;
         value = _s.UInt32(name, value);
@@ -265,7 +185,7 @@ public class AnnotationProxySerdes : ISerdes
     }
 
     /// <inheritdoc />
-    public ulong UInt64(string name, ulong value)
+    public ulong UInt64(SerdesName name, ulong value)
     {
         var offset = LocalOffset;
         value = _s.UInt64(name, value);
@@ -276,52 +196,7 @@ public class AnnotationProxySerdes : ISerdes
     }
 
     /// <inheritdoc />
-    public T EnumU8<T>(int n, T value) where T : unmanaged, Enum
-        => EnumU8(n.ToString(CultureInfo.InvariantCulture), value);
-
-    /// <inheritdoc />
-    public T EnumU8<T>(string name, T value) where T : unmanaged, Enum
-    {
-        var offset = LocalOffset;
-        value = _s.EnumU8(name, value);
-        var uintValue = SerdesUtil.EnumToUInt(value);
-        DoIndent();
-        _tw.Write("{0:X} {1} = {2} (0x{2:X} uy) // {3}", offset, name, uintValue, value.ToString());
-        return value;
-    }
-
-    /// <inheritdoc />
-    public T EnumU16<T>(int n, T value) where T : unmanaged, Enum
-        => EnumU16(n.ToString(CultureInfo.InvariantCulture), value);
-
-    /// <inheritdoc />
-    public T EnumU16<T>(string name, T value) where T : unmanaged, Enum
-    {
-        var offset = LocalOffset;
-        value = _s.EnumU16(name, value);
-        var uintValue = SerdesUtil.EnumToUInt(value);
-        DoIndent();
-        _tw.Write("{0:X} {1} = {2} (0x{2:X} us) // {3}", offset, name, uintValue, value.ToString());
-        return value;
-    }
-
-    /// <inheritdoc />
-    public T EnumU32<T>(int n, T value) where T : unmanaged, Enum
-        => EnumU32(n.ToString(CultureInfo.InvariantCulture), value);
-
-    /// <inheritdoc />
-    public T EnumU32<T>(string name, T value) where T : unmanaged, Enum
-    {
-        var offset = LocalOffset;
-        value = _s.EnumU32(name, value);
-        var uintValue = SerdesUtil.EnumToUInt(value);
-        DoIndent();
-        _tw.Write("{0:X} {1} = {2} (0x{2:X} u) // {3}", offset, name, uintValue, value.ToString());
-        return value;
-    }
-
-    /// <inheritdoc />
-    public Guid Guid(string name, Guid value)
+    public Guid Guid(SerdesName name, Guid value)
     {
         var offset = LocalOffset;
         value = _s.Guid(name, value);
@@ -331,7 +206,7 @@ public class AnnotationProxySerdes : ISerdes
     }
 
     /// <inheritdoc />
-    public byte[] Bytes(string name, byte[] value, int n)
+    public byte[] Bytes(SerdesName name, byte[] value, int n)
     {
         var offset = LocalOffset;
         value = _s.Bytes(name, value, n);
@@ -347,7 +222,7 @@ public class AnnotationProxySerdes : ISerdes
     }
 
 #if NETSTANDARD2_1_OR_GREATER
-        public void Bytes(string name, Span<byte> value)
+        public void Bytes(SerdesName name, Span<byte> value)
         {
             int n = value.Length;
             var offset = LocalOffset;
@@ -367,9 +242,8 @@ public class AnnotationProxySerdes : ISerdes
         _indent += 4;
         var payloadOffset = 0;
         var sb = new StringBuilder(16);
-        for (int i = 0; i < value.Length; i++)
+        foreach (var b in value)
         {
-            byte b = value[i];
             if (payloadOffset % 16 == 0)
             {
                 _tw.Write(' ');
@@ -400,7 +274,7 @@ public class AnnotationProxySerdes : ISerdes
     }
 
     /// <inheritdoc />
-    public string NullTerminatedString(string name, string value)
+    public string NullTerminatedString(SerdesName name, string value)
     {
         value ??= string.Empty;
         var offset = LocalOffset;
@@ -411,7 +285,7 @@ public class AnnotationProxySerdes : ISerdes
     }
 
     /// <inheritdoc />
-    public string FixedLengthString(string name, string value, int length)
+    public string FixedLengthString(SerdesName name, string value, int length)
     {
         value ??= string.Empty;
         var offset = LocalOffset;
@@ -422,52 +296,5 @@ public class AnnotationProxySerdes : ISerdes
         var bytes = _stringToBytes(value);
         if (bytes.Length > length + 1) throw new InvalidOperationException("Tried to write over-length string");
         return value;
-    }
-
-    /// <inheritdoc />
-    public IList<TTarget> List<TTarget>(
-        string name, IList<TTarget> list, int count,
-        SerdesMethod<TTarget> serializer,
-        Func<int, IList<TTarget>> initialiser = null)
-        => List(name, list, count, 0, serializer, initialiser);
-
-    /// <inheritdoc />
-    public IList<TTarget> ListWithContext<TTarget, TContext>(
-        string name, IList<TTarget> list, TContext context, int count,
-        SerdesContextMethod<TTarget, TContext> serializer,
-        Func<int, IList<TTarget>> initialiser = null)
-        => ListWithContext(name, list, context, count, 0, serializer, initialiser);
-
-    /// <inheritdoc />
-    public IList<TTarget> List<TTarget>(
-        string name,
-        IList<TTarget> list,
-        int count,
-        int offset,
-        SerdesMethod<TTarget> serializer,
-        Func<int, IList<TTarget>> initialiser = null)
-    {
-        Begin(name);
-        TTarget InterceptedSerializer(int i, TTarget x, ISerdes _) => serializer(i, x, this);
-        var result = _s.List(name, list, count, offset, InterceptedSerializer, initialiser);
-        End();
-        return result;
-    }
-
-    /// <inheritdoc />
-    public IList<TTarget> ListWithContext<TTarget, TContext>(
-        string name,
-        IList<TTarget> list,
-        TContext context,
-        int count,
-        int offset,
-        SerdesContextMethod<TTarget, TContext> serializer,
-        Func<int, IList<TTarget>> initialiser = null)
-    {
-        Begin(name);
-        TTarget InterceptedSerializer(int i, TTarget x, TContext c, ISerdes _) => serializer(i, x, c, this);
-        var result = _s.ListWithContext(name, list, context, count, offset, InterceptedSerializer, initialiser);
-        End();
-        return result;
     }
 }

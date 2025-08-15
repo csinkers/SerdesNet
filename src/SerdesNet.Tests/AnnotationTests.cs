@@ -135,7 +135,7 @@ public class AnnotationTests
     [Fact]
     public void ListTest()
     {
-        static byte UInt8Serdes(int i, byte v, ISerdes s) => s.UInt8(i.ToString(), v);
+        static byte UInt8Serdes(SerdesName i, byte v, ISerdes s) => s.UInt8(i.ToString(), v);
         Assert.Equal(@"0 name: {
     0 0 = 1 (0x1 uy)
     1 1 = 2 (0x2 uy)

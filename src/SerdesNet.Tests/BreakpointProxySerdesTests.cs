@@ -116,8 +116,8 @@ namespace SerdesNet.Tests
         public void Int8_CallsUnderlyingSerdesInt8()
         {
             var inner = new Mock<ISerdes>();
-            inner.Setup(x => x.Int8(It.IsAny<int>(), It.IsAny<sbyte>()))
-                .Returns((int _, sbyte v) => v);
+            inner.Setup(x => x.Int8(It.IsAny<SerdesName>(), It.IsAny<sbyte>()))
+                .Returns((SerdesName _, sbyte v) => v);
 
             var outer = new BreakpointProxySerdes(inner.Object);
             Assert.Equal(1, outer.Int8(0, 1));
@@ -128,8 +128,8 @@ namespace SerdesNet.Tests
         public void Int16_CallsUnderlyingSerdesInt16()
         {
             var inner = new Mock<ISerdes>();
-            inner.Setup(x => x.Int16(It.IsAny<int>(), It.IsAny<short>()))
-                .Returns((int _, short v) => v);
+            inner.Setup(x => x.Int16(It.IsAny<SerdesName>(), It.IsAny<short>()))
+                .Returns((SerdesName _, short v) => v);
 
             var outer = new BreakpointProxySerdes(inner.Object);
             Assert.Equal(1, outer.Int16(0, 1));
@@ -140,8 +140,8 @@ namespace SerdesNet.Tests
         public void Int32_CallsUnderlyingSerdesInt32()
         {
             var inner = new Mock<ISerdes>();
-            inner.Setup(x => x.Int32(It.IsAny<int>(), It.IsAny<int>()))
-                .Returns((int _, int v) => v);
+            inner.Setup(x => x.Int32(It.IsAny<SerdesName>(), It.IsAny<int>()))
+                .Returns((SerdesName _, int v) => v);
 
             var outer = new BreakpointProxySerdes(inner.Object);
             Assert.Equal(1, outer.Int32(0, 1));
@@ -152,8 +152,8 @@ namespace SerdesNet.Tests
         public void Int64_CallsUnderlyingSerdesInt64()
         {
             var inner = new Mock<ISerdes>();
-            inner.Setup(x => x.Int64(It.IsAny<int>(), It.IsAny<long>()))
-                .Returns((int _, long v) => v);
+            inner.Setup(x => x.Int64(It.IsAny<SerdesName>(), It.IsAny<long>()))
+                .Returns((SerdesName _, long v) => v);
 
             var outer = new BreakpointProxySerdes(inner.Object);
             Assert.Equal(1, outer.Int64(0, 1));
@@ -164,8 +164,8 @@ namespace SerdesNet.Tests
         public void UInt8_CallsUnderlyingSerdesUInt8()
         {
             var inner = new Mock<ISerdes>();
-            inner.Setup(x => x.UInt8(It.IsAny<int>(), It.IsAny<byte>()))
-                .Returns((int _, byte v) => v);
+            inner.Setup(x => x.UInt8(It.IsAny<SerdesName>(), It.IsAny<byte>()))
+                .Returns((SerdesName _, byte v) => v);
 
             var outer = new BreakpointProxySerdes(inner.Object);
             Assert.Equal(1, outer.UInt8(0, 1));
@@ -176,8 +176,8 @@ namespace SerdesNet.Tests
         public void UInt16_CallsUnderlyingSerdesUInt16()
         {
             var inner = new Mock<ISerdes>();
-            inner.Setup(x => x.UInt16(It.IsAny<int>(), It.IsAny<ushort>()))
-                .Returns((int _, ushort v) => v);
+            inner.Setup(x => x.UInt16(It.IsAny<SerdesName>(), It.IsAny<ushort>()))
+                .Returns((SerdesName _, ushort v) => v);
 
             var outer = new BreakpointProxySerdes(inner.Object);
             Assert.Equal(1, outer.UInt16(0, 1));
@@ -188,8 +188,8 @@ namespace SerdesNet.Tests
         public void UInt32_CallsUnderlyingSerdesUInt32()
         {
             var inner = new Mock<ISerdes>();
-            inner.Setup(x => x.UInt32(It.IsAny<int>(), It.IsAny<uint>()))
-                .Returns((int _, uint v) => v);
+            inner.Setup(x => x.UInt32(It.IsAny<SerdesName>(), It.IsAny<uint>()))
+                .Returns((SerdesName _, uint v) => v);
 
             var outer = new BreakpointProxySerdes(inner.Object);
             Assert.Equal(1u, outer.UInt32(0, 1));
@@ -200,8 +200,8 @@ namespace SerdesNet.Tests
         public void UInt64_CallsUnderlyingSerdesUInt64()
         {
             var inner = new Mock<ISerdes>();
-            inner.Setup(x => x.UInt64(It.IsAny<int>(), It.IsAny<ulong>()))
-                .Returns((int _, ulong v) => v);
+            inner.Setup(x => x.UInt64(It.IsAny<SerdesName>(), It.IsAny<ulong>()))
+                .Returns((SerdesName _, ulong v) => v);
 
             var outer = new BreakpointProxySerdes(inner.Object);
             Assert.Equal(1u, outer.UInt64(0, 1));
@@ -209,38 +209,38 @@ namespace SerdesNet.Tests
         }
 
         [Fact]
-        public void EnumU8_CallsUnderlyingSerdesEnumU8()
+        public void EnumU8_CallsUnderlyingSerdesU8()
         {
             var inner = new Mock<ISerdes>();
             var outer = new BreakpointProxySerdes(inner.Object);
-            Assert.Equal(TestEnum.Value1, outer.EnumU8(0, TestEnum.Value1));
-            inner.Verify(x => x.EnumU8(0, TestEnum.Value1), Times.Once);
+            Assert.Equal(TestEnumU8.Value1, outer.EnumU8(0, TestEnumU8.Value1));
+            inner.Verify(x => x.UInt8(0, (byte)TestEnumU8.Value1), Times.Once);
         }
 
         [Fact]
-        public void EnumU16_CallsUnderlyingSerdesEnumU16()
+        public void EnumU16_CallsUnderlyingSerdesU16()
         {
             var inner = new Mock<ISerdes>();
             var outer = new BreakpointProxySerdes(inner.Object);
-            Assert.Equal(TestEnum.Value1, outer.EnumU16(0, TestEnum.Value1));
-            inner.Verify(x => x.EnumU16(0, TestEnum.Value1), Times.Once);
+            Assert.Equal(TestEnumU16.Value1, outer.EnumU16(0, TestEnumU16.Value1));
+            inner.Verify(x => x.UInt16(0, (ushort)TestEnumU16.Value1), Times.Once);
         }
 
         [Fact]
-        public void EnumU32_CallsUnderlyingSerdesEnumU32()
+        public void EnumU32_CallsUnderlyingSerdesU32()
         {
             var inner = new Mock<ISerdes>();
             var outer = new BreakpointProxySerdes(inner.Object);
-            Assert.Equal(TestEnum.Value1, outer.EnumU32(0, TestEnum.Value1));
-            inner.Verify(x => x.EnumU32(0, TestEnum.Value1), Times.Once);
+            Assert.Equal(TestEnumU32.Value1, outer.EnumU32(0, TestEnumU32.Value1));
+            inner.Verify(x => x.UInt32(0, (uint)TestEnumU32.Value1), Times.Once);
         }
 
         [Fact]
         public void Guid_CallsUnderlyingSerdesGuid()
         {
             var inner = new Mock<ISerdes>();
-            inner.Setup(x => x.Guid(It.IsAny<string>(), It.IsAny<Guid>()))
-                .Returns((string _, Guid v) => v);
+            inner.Setup(x => x.Guid(It.IsAny<SerdesName>(), It.IsAny<Guid>()))
+                .Returns((SerdesName _, Guid v) => v);
 
             var outer = new BreakpointProxySerdes(inner.Object);
             var guid = Guid.NewGuid();
@@ -252,21 +252,21 @@ namespace SerdesNet.Tests
         public void Bytes_CallsUnderlyingSerdesBytes()
         {
             var inner = new Mock<ISerdes>();
-            inner.Setup(x => x.Bytes(It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<int>()))
-                .Returns((string _, byte[] v, int _) => v);
+            inner.Setup(x => x.Bytes(It.IsAny<SerdesName>(), It.IsAny<byte[]>(), It.IsAny<int>()))
+                .Returns((SerdesName _, byte[] v, int _) => v);
 
             var outer = new BreakpointProxySerdes(inner.Object);
             var bytes = new byte[] { 1, 2, 3 };
-            Assert.Equal(bytes, outer.Bytes("test", bytes, 3));
-            inner.Verify(x => x.Bytes("test", bytes, 3), Times.Once);
+            Assert.Equal(bytes, outer.Bytes((SerdesName)"test", bytes, 3));
+            inner.Verify(x => x.Bytes((SerdesName)"test", bytes, 3), Times.Once);
         }
 
         [Fact]
         public void NullTerminatedString_CallsUnderlyingSerdesNullTerminatedString()
         {
             var inner = new Mock<ISerdes>();
-            inner.Setup(x => x.NullTerminatedString(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns((string _, string v) => v);
+            inner.Setup(x => x.NullTerminatedString(It.IsAny<SerdesName>(), It.IsAny<string>()))
+                .Returns((SerdesName _, string v) => v);
 
             var outer = new BreakpointProxySerdes(inner.Object);
             Assert.Equal("test", outer.NullTerminatedString("test", "test"));
@@ -277,31 +277,12 @@ namespace SerdesNet.Tests
         public void FixedLengthString_CallsUnderlyingSerdesFixedLengthString()
         {
             var inner = new Mock<ISerdes>();
-            inner.Setup(x => x.FixedLengthString(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
-                .Returns((string _, string v, int _) => v);
+            inner.Setup(x => x.FixedLengthString(It.IsAny<SerdesName>(), It.IsAny<string>(), It.IsAny<int>()))
+                .Returns((SerdesName _, string v, int _) => v);
 
             var outer = new BreakpointProxySerdes(inner.Object);
             Assert.Equal("test", outer.FixedLengthString("test", "test", 4));
             inner.Verify(x => x.FixedLengthString("test", "test", 4), Times.Once);
-        }
-
-        [Fact]
-        public void List_CallsUnderlyingSerdesList()
-        {
-            var inner = new Mock<ISerdes>();
-            inner.Setup(x => x.List(
-                    It.IsAny<string>(),
-                    It.IsAny<IList<int>>(),
-                    It.IsAny<int>(),
-                    It.IsAny<SerdesMethod<int>>(),
-                    It.IsAny<Func<int, IList<int>>>())
-                )
-                .Returns((string _, IList<int> list, int _, SerdesMethod<int> _, Func<int, IList<int>> _) => list);
-
-            var outer = new BreakpointProxySerdes(inner.Object);
-            var list = new List<int> { 1, 2, 3 };
-            Assert.Equal(list, outer.List("test", list, 3, (_, v, _) => v));
-            inner.Verify(x => x.List("test", list, 3, It.IsAny<SerdesMethod<int>>(), null), Times.Once);
         }
 
         [Fact]
@@ -336,9 +317,8 @@ namespace SerdesNet.Tests
             outer.Pad(1); Assert.Equal(3, hitCount); // 5
         }
 
-        enum TestEnum
-        {
-            Value1
-        }
+        enum TestEnumU8 : byte { Value1 }
+        enum TestEnumU16 : ushort { Value1 }
+        enum TestEnumU32 : uint { Value1 }
     }
 }

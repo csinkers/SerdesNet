@@ -133,39 +133,63 @@ public class ReaderSerdesTests
         });
     }
 
+    static byte UInt8Serdes(SerdesName i, byte v, ISerdes s) => s.UInt8("", v);
+
     [Fact]
-    public void ListTest()
+    public void ListTest1()
     {
-        static byte UInt8Serdes(int i, byte v, ISerdes s) => s.UInt8("", v);
+
+        var actual1 = Read([1, 2, 3])
+            .List("", null, 3, UInt8Serdes, x => new byte[x]);
+
         Assert.Collection(
-            Read([1, 2, 3])
-                .List("", null, 3, UInt8Serdes, x => new byte[x]),
+            actual1,
             x => Assert.Equal(1, x),
             x => Assert.Equal(2, x),
             x => Assert.Equal(3, x)
         );
+    }
+
+    [Fact]
+    public void ListTest2()
+    {
+        var actual2 = Read([1, 2, 3])
+            .List("", null, 3, UInt8Serdes, _ => new List<byte>());
 
         Assert.Collection(
-            Read([1, 2, 3])
-                .List("", null, 3, UInt8Serdes, _ => new List<byte>()),
+            actual2,
             x => Assert.Equal(1, x),
             x => Assert.Equal(2, x),
             x => Assert.Equal(3, x)
         );
+    }
 
+    [Fact]
+    public void ListTest3()
+    {
         Assert.Throws<EndOfStreamException>(() =>
         {
             Read([1, 2, 3]).List("", null, 4, UInt8Serdes, _ => new List<byte>());
         });
+    }
+
+    [Fact]
+    public void ListTest4()
+    {
 
         Assert.Collection(
             Read([1, 2, 3])
                 .List("", null, 3, 1, UInt8Serdes, _ => new List<byte>()),
-            x => Assert.Equal(1, x),
+            x => Assert.Equal(0, x),
             x => Assert.Equal(1, x),
             x => Assert.Equal(2, x),
             x => Assert.Equal(3, x)
         );
+    }
+
+    [Fact]
+    public void ListTest5()
+    {
 
         var l = new List<byte> { 5 };
         Assert.Collection(
@@ -176,6 +200,11 @@ public class ReaderSerdesTests
             x => Assert.Equal(2, x),
             x => Assert.Equal(3, x)
         );
+    }
+
+    [Fact]
+    public void ListTest6()
+    {
 
         var a = new byte[4];
         Assert.Collection(
@@ -263,10 +292,12 @@ public class ReaderSerdesTests
     [Fact]
     public void EnumTests()
     {
+        var value = Read([0, 1, 2, 3, 0xff])
+            .List<ByteEnum>(
+                "", null, 5,
+                (n, v, s) => s.EnumU8(n, v));
         Assert.Collection(
-            Read([0, 1, 2, 3, 0xff])
-                .List<ByteEnum>("", null, 5, (n, v, s) => s.EnumU8(n, v)),
-
+            value,
             x => Assert.Equal(ByteEnum.None, x),
             x => Assert.Equal(ByteEnum.Some, x),
             x => Assert.Equal(ByteEnum.Both, x),

@@ -135,7 +135,7 @@ public class WriterSerdesTests
     [Fact]
     public void ListTest()
     {
-        static byte UInt8Serdes(int i, byte v, ISerdes s) => s.UInt8("", v);
+        static byte UInt8Serdes(SerdesName i, byte v, ISerdes s) => s.UInt8("", v);
         Assert.Equal(new byte[] { 1, 2, 3 },
             Write(s => s.List(
                 "",

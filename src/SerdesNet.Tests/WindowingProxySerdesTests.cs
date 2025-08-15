@@ -244,9 +244,10 @@ public class WindowingProxySerdesTests
     {
         var inner = Reader(SeqBytes);
         var outer = new WindowingProxySerdes(inner, 8);
-        Assert.Equal(TestEnum.Value0, outer.EnumU8(0, TestEnum.Value1));
-        Assert.Equal(TestEnum.Value1, outer.EnumU8(0, TestEnum.Value1));
-        Assert.Equal(TestEnum.Value2, outer.EnumU8(0, TestEnum.Value1));
+        // when reading, the input values should be ignored
+        Assert.Equal(TestEnumU8.Value0, outer.EnumU8(0, TestEnumU8.Value1));
+        Assert.Equal(TestEnumU8.Value1, outer.EnumU8(0, TestEnumU8.Value1));
+        Assert.Equal(TestEnumU8.Value2, outer.EnumU8(0, TestEnumU8.Value1));
     }
 
     [Fact]
@@ -254,9 +255,10 @@ public class WindowingProxySerdesTests
     {
         var inner = Reader(SeqShorts);
         var outer = new WindowingProxySerdes(inner, 8);
-        Assert.Equal(TestEnum.Value0, outer.EnumU16(0, TestEnum.Value1));
-        Assert.Equal(TestEnum.Value1, outer.EnumU16(0, TestEnum.Value1));
-        Assert.Equal(TestEnum.Value2, outer.EnumU16(0, TestEnum.Value1));
+        // when reading, the input values should be ignored
+        Assert.Equal(TestEnum16.Value0, outer.Enum16(0, TestEnum16.Value1));
+        Assert.Equal(TestEnum16.Value1, outer.Enum16(0, TestEnum16.Value1));
+        Assert.Equal(TestEnum16.Value2, outer.Enum16(0, TestEnum16.Value1));
     }
 
     [Fact]
@@ -264,9 +266,10 @@ public class WindowingProxySerdesTests
     {
         var inner = Reader(SeqInts);
         var outer = new WindowingProxySerdes(inner, 8);
-        Assert.Equal(TestEnum.Value0, outer.EnumU32(0, TestEnum.Value1));
-        Assert.Equal(TestEnum.Value1, outer.EnumU32(0, TestEnum.Value1));
-        Assert.Equal(TestEnum.Value2, outer.EnumU32(0, TestEnum.Value1));
+        // when reading, the input values should be ignored
+        Assert.Equal(TestEnum32.Value0, outer.Enum32(0, TestEnum32.Value1));
+        Assert.Equal(TestEnum32.Value1, outer.Enum32(0, TestEnum32.Value1));
+        Assert.Equal(TestEnum32.Value2, outer.Enum32(0, TestEnum32.Value1));
     }
 
     [Fact]
@@ -343,10 +346,7 @@ public class WindowingProxySerdesTests
         Assert.Equal([0, 0, 1, 2, 3, 4], list);
     }
 
-    enum TestEnum
-    {
-        Value0,
-        Value1,
-        Value2
-    }
+    enum TestEnumU8 : byte { Value0, Value1, Value2 }
+    enum TestEnum16 : short { Value0, Value1, Value2 }
+    enum TestEnum32 { Value0, Value1, Value2 }
 }

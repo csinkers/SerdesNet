@@ -514,7 +514,7 @@ public class SerializerExtensionsTests
         obj.Name = s.NullTerminatedString(nameof(obj.Name), obj.Name);
     }
 
-    static TestObject SerializeTestObject(int index, TestObject obj, ISerdes s)
+    static TestObject SerializeTestObject(SerdesName name, TestObject obj, ISerdes s)
     {
         obj ??= new TestObject();
         obj.Id = s.Int32(nameof(obj.Id), obj.Id);
@@ -522,7 +522,7 @@ public class SerializerExtensionsTests
         return obj;
     }
 
-    static TestObject SerdesTestObjectWithContext(string name, TestObject obj, TestContext context, ISerdes s)
+    static TestObject SerdesTestObjectWithContext(SerdesName name, TestObject obj, TestContext context, ISerdes s)
     {
         obj ??= new TestObject();
         obj.Id = s.Int32(nameof(obj.Id), obj.Id);

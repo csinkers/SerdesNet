@@ -107,7 +107,7 @@ public class Example
     public string     NullTerm   { get; private set; }
     public Guid       Guid       { get; private set; }
 
-    public static Example Serdes(string _, Example e, ISerdes s)
+    public static Example Serdes(SerdesName _, Example e, ISerdes s)
     {
         e ??= new Example();
         e.SByte      =    s.Int8(nameof(SByte), e.SByte);

@@ -66,7 +66,7 @@ public class ReaderSerdes : ISerdes
     /// <inheritdoc />
     public void Comment(string msg, bool inline) { }
     /// <inheritdoc />
-    public void Begin(string name = null) { }
+    public void Begin(SerdesName name = default) { }
     /// <inheritdoc />
     public void End() { }
     /// <inheritdoc />
@@ -81,7 +81,7 @@ public class ReaderSerdes : ISerdes
     public void Pad(int count, byte value) => Pad(null, count, value);
 
     /// <inheritdoc />
-    public void Pad(string name, int count, byte value)
+    public void Pad(SerdesName name, int count, byte value)
     {
         var bytes = _br.ReadBytes(count);
         if (bytes.Length < count)
@@ -93,55 +93,24 @@ public class ReaderSerdes : ISerdes
     }
 
     /// <inheritdoc />
-    public sbyte Int8(int n, sbyte value) => _br.ReadSByte();
+    public sbyte Int8(SerdesName name, sbyte value) => _br.ReadSByte();
     /// <inheritdoc />
-    public short Int16(int n, short value) => _br.ReadInt16();
+    public short Int16(SerdesName name, short value) => _br.ReadInt16();
     /// <inheritdoc />
-    public int Int32(int n, int value) => _br.ReadInt32();
+    public int Int32(SerdesName name, int value) => _br.ReadInt32();
     /// <inheritdoc />
-    public long Int64(int n, long value) => _br.ReadInt64();
+    public long Int64(SerdesName name, long value) => _br.ReadInt64();
     /// <inheritdoc />
-    public byte UInt8(int n, byte value) => _br.ReadByte();
+    public byte UInt8(SerdesName name, byte value) => _br.ReadByte();
     /// <inheritdoc />
-    public ushort UInt16(int n, ushort value) => _br.ReadUInt16();
+    public ushort UInt16(SerdesName name, ushort value) => _br.ReadUInt16();
     /// <inheritdoc />
-    public uint UInt32(int n, uint value) => _br.ReadUInt32();
+    public uint UInt32(SerdesName name, uint value) => _br.ReadUInt32();
     /// <inheritdoc />
-    public ulong UInt64(int n, ulong value) => _br.ReadUInt64();
+    public ulong UInt64(SerdesName name, ulong value) => _br.ReadUInt64();
 
     /// <inheritdoc />
-    public sbyte Int8(string name, sbyte value) => _br.ReadSByte();
-    /// <inheritdoc />
-    public short Int16(string name, short value) => _br.ReadInt16();
-    /// <inheritdoc />
-    public int Int32(string name, int value) => _br.ReadInt32();
-    /// <inheritdoc />
-    public long Int64(string name, long value) => _br.ReadInt64();
-    /// <inheritdoc />
-    public byte UInt8(string name, byte value) => _br.ReadByte();
-    /// <inheritdoc />
-    public ushort UInt16(string name, ushort value) => _br.ReadUInt16();
-    /// <inheritdoc />
-    public uint UInt32(string name, uint value) => _br.ReadUInt32();
-    /// <inheritdoc />
-    public ulong UInt64(string name, ulong value) => _br.ReadUInt64();
-
-    /// <inheritdoc />
-    public T EnumU8<T>(int n, T value) where T : unmanaged, Enum => SerdesUtil.ByteToEnum<T>(_br.ReadByte());
-    /// <inheritdoc />
-    public T EnumU16<T>(int n, T value) where T : unmanaged, Enum => SerdesUtil.UShortToEnum<T>((_br.ReadUInt16()));
-    /// <inheritdoc />
-    public T EnumU32<T>(int n, T value) where T : unmanaged, Enum => SerdesUtil.UIntToEnum<T>(_br.ReadUInt32());
-
-    /// <inheritdoc />
-    public T EnumU8<T>(string name, T value) where T : unmanaged, Enum => SerdesUtil.ByteToEnum<T>(_br.ReadByte());
-    /// <inheritdoc />
-    public T EnumU16<T>(string name, T value) where T : unmanaged, Enum => SerdesUtil.UShortToEnum<T>((_br.ReadUInt16()));
-    /// <inheritdoc />
-    public T EnumU32<T>(string name, T value) where T : unmanaged, Enum => SerdesUtil.UIntToEnum<T>(_br.ReadUInt32());
-
-    /// <inheritdoc />
-    public Guid Guid(string name, Guid value)
+    public Guid Guid(SerdesName name, Guid value)
     {
         var bytes = _br.ReadBytes(16);
         if (bytes.Length < 16)
@@ -150,7 +119,7 @@ public class ReaderSerdes : ISerdes
     }
 
     /// <inheritdoc />
-    public byte[] Bytes(string name, byte[] value, int n)
+    public byte[] Bytes(SerdesName name, byte[] value, int n)
     {
         var v = _br.ReadBytes(n);
         if (v.Length < n)
@@ -161,7 +130,7 @@ public class ReaderSerdes : ISerdes
 
 #if NETSTANDARD2_1_OR_GREATER
     /// <inheritdoc />
-    public void Bytes(string name, Span<byte> value)
+    public void Bytes(SerdesName name, Span<byte> value)
     {
         int n = _br.Read(value);
         if (value.Length < n)
@@ -170,7 +139,7 @@ public class ReaderSerdes : ISerdes
 #endif
 
     /// <inheritdoc />
-    public string NullTerminatedString(string name, string value)
+    public string NullTerminatedString(SerdesName name, string value)
     {
         var bytes = new List<byte>();
         for (;;)
@@ -186,7 +155,7 @@ public class ReaderSerdes : ISerdes
     }
 
     /// <inheritdoc />
-    public string FixedLengthString(string name, string value, int length)
+    public string FixedLengthString(SerdesName name, string value, int length)
     {
         var bytes = _br.ReadBytes(length);
         if (bytes.Length < length)
@@ -194,67 +163,6 @@ public class ReaderSerdes : ISerdes
 
         var str = _bytesToString(bytes);
         return str.TrimEnd('\0');
-    }
-
-    /// <inheritdoc />
-    public IList<TTarget> List<TTarget>(
-        string name, IList<TTarget> list, int count,
-        SerdesMethod<TTarget> serializer,
-        Func<int, IList<TTarget>> initialiser = null)
-        => List(name, list, count, 0, serializer, initialiser);
-
-    /// <inheritdoc />
-    public IList<TTarget> ListWithContext<TTarget, TContext>(
-        string name, IList<TTarget> list, TContext context, int count,
-        SerdesContextMethod<TTarget, TContext> serializer,
-        Func<int, IList<TTarget>> initialiser = null)
-        => ListWithContext(name, list, context, count, 0, serializer, initialiser);
-
-    /// <inheritdoc />
-    public IList<TTarget> List<TTarget>(
-        string name,
-        IList<TTarget> list,
-        int count,
-        int offset,
-        SerdesMethod<TTarget> serdes,
-        Func<int, IList<TTarget>> initialiser = null)
-    {
-        list ??= initialiser?.Invoke(count) ?? (List<TTarget>)[];
-        for (int i = offset; i < offset + count; i++)
-        {
-            var x = serdes(i, default, this);
-
-            if (list.Count <= i)
-                while (list.Count <= i)
-                    list.Add(x);
-            else
-                list[i] = x;
-        }
-        return list;
-    }
-
-    /// <inheritdoc />
-    public IList<TTarget> ListWithContext<TTarget, TContext>(
-        string name,
-        IList<TTarget> list,
-        TContext context,
-        int count,
-        int offset,
-        SerdesContextMethod<TTarget, TContext> serdes,
-        Func<int, IList<TTarget>> initialiser = null)
-    {
-        list ??= initialiser?.Invoke(count) ?? (List<TTarget>)[];
-        for (int i = offset; i < offset + count; i++)
-        {
-            var x = serdes(i, default, context, this);
-
-            if (list.Count <= i)
-                while (list.Count <= i)
-                    list.Add(x);
-            else
-                list[i] = x;
-        }
-        return list;
     }
 
     void ISerdes.Assert(bool condition, string message) => Assert(condition, message);
