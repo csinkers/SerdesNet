@@ -172,24 +172,4 @@ public interface ISerdes : IDisposable
         /// <param name="value">The bytes to (de)serialize</param>
         void Bytes(SerdesName name, Span<byte> value);
 #endif
-
-    /// <summary>
-    /// (De)serializes a null-terminated string.
-    /// The encoding is determined by the stringToBytes / bytesToString method that was passed to the constructor.
-    /// </summary>
-    /// <param name="name">The name of the value being written, only used for annotation</param>
-    /// <param name="value">The string to write when serializing</param>
-    /// <returns>The string that was (de)serialized</returns>
-    string NullTerminatedString(SerdesName name, string value);
-
-    /// <summary>
-    /// (De)serializes a fixed-length (in bytes) string.
-    /// The encoding is determined by the stringToBytes / bytesToString method that was passed to the constructor.
-    /// Any extra bytes should be set to 0.
-    /// </summary>
-    /// <param name="name">The name of the value being written, only used for annotation</param>
-    /// <param name="value">The string to write when serializing</param>
-    /// <param name="length">The maximum number of bytes the string can occupy</param>
-    /// <returns>The string that was (de)serialized</returns>
-    string FixedLengthString(SerdesName name, string value, int length);
 }

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using Xunit;
 
 namespace SerdesNet.Tests;
@@ -15,19 +14,19 @@ public class AnnotationTests
         using var binaryWriter = new BinaryWriter(byteStream);
         using var binarySerializer = new WriterSerdes(
             binaryWriter,
-            Encoding.UTF8.GetBytes,
             assertHandler ?? (m => throw new InvalidOperationException(m)));
 
         using var textStream = new MemoryStream();
         using var textWriter = new StreamWriter(textStream);
-        using var annotatingSerializer = new AnnotationProxySerdes(binarySerializer, textWriter, Encoding.ASCII.GetBytes);
+        using var annotatingSerializer = new AnnotationProxySerdes(binarySerializer, textWriter);
 
         action(annotatingSerializer);
 
         textWriter.Flush();
         textStream.Position = 0;
         using var sr = new StreamReader(textStream, null, true, -1, true);
-        return sr.ReadToEnd().Trim();
+        var result = sr.ReadToEnd().Trim();
+        return result;
     }
 
     [Fact]
@@ -112,17 +111,12 @@ public class AnnotationTests
     }
 
     [Fact]
-    public void FixedLengthStringTest()
+    public void StringTest()
     {
-        Assert.Equal("0 name = \"A\"", Write(s => s.FixedLengthString("name", "A", 1)));
-        Assert.Throws<InvalidOperationException>(() =>
-            Write(s => s.FixedLengthString("name", "Too long", 1)));
-    }
-
-    [Fact]
-    public void NullTerminatedStringTest()
-    {
-        Assert.Equal("0 name = \"A\"", Write(s => s.NullTerminatedString("name", "A")));
+        Assert.Equal(
+@"0 nameLength = 1 (0x1)
+4 name = 41 // A"
+            , Write(s => s.String32Utf8("name", "A")));
     }
 
     [Fact]
@@ -303,9 +297,9 @@ public class AnnotationTests
     1E ByteEnum = 1 (0x1 uy) // Some
     1F UShortEnum = 2 (0x2 us) // Both
     21 UIntEnum = 3 (0x3 u) // Many
-    25 Fixed = ""Fixed""
-    2A NullTerm = ""Null""
-    2F Guid = {fa6fa50d-be6f-4736-87df-e17280f14248}
+    25 Utf8Length = 4 (0x4)
+    29 Utf8 = 55746638 // Utf8
+    2D Guid = {fa6fa50d-be6f-4736-87df-e17280f14248}
 }",
             Write(s => s.Object("name", Example.TestInstance, Example.Serdes)));
     }

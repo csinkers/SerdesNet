@@ -1,5 +1,4 @@
 using System.IO;
-using System.Text;
 using Moq;
 using Xunit;
 
@@ -130,7 +129,7 @@ public class SerializerExtensionsTests
         short value = 0x1234;
         byte[] expected = [0x12, 0x34];
         var ms = new MemoryStream();
-        var w = new WriterSerdes(ms, Encoding.UTF8);
+        var w = new WriterSerdes(ms);
 
         // Act
         var result = w.Int16BE(0, value);
@@ -148,7 +147,7 @@ public class SerializerExtensionsTests
         int value = 0x12345678;
         byte[] expected = [0x12, 0x34, 0x56, 0x78];
         var ms = new MemoryStream();
-        var w = new WriterSerdes(ms, Encoding.UTF8);
+        var w = new WriterSerdes(ms);
 
         // Act
         var result = w.Int32BE(0, value);
@@ -166,7 +165,7 @@ public class SerializerExtensionsTests
         long value = 0x123456789ABCDEF0;
         byte[] expected = [0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0];
         var ms = new MemoryStream();
-        var w = new WriterSerdes(ms, Encoding.UTF8);
+        var w = new WriterSerdes(ms);
 
         // Act
         var result = w.Int64BE(0, value);
@@ -184,7 +183,7 @@ public class SerializerExtensionsTests
         ushort value = 0x1234;
         byte[] expected = [0x12, 0x34];
         var ms = new MemoryStream();
-        var w = new WriterSerdes(ms, Encoding.UTF8);
+        var w = new WriterSerdes(ms);
 
         // Act
         var result = w.UInt16BE(0, value);
@@ -202,7 +201,7 @@ public class SerializerExtensionsTests
         uint value = 0x12345678;
         byte[] expected = [0x12, 0x34, 0x56, 0x78];
         var ms = new MemoryStream();
-        var w = new WriterSerdes(ms, Encoding.UTF8);
+        var w = new WriterSerdes(ms);
 
         // Act
         var result = w.UInt32BE(0, value);
@@ -220,7 +219,7 @@ public class SerializerExtensionsTests
         ulong value = 0x123456789ABCDEF0;
         byte[] expected = [0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0];
         var ms = new MemoryStream();
-        var w = new WriterSerdes(ms, Encoding.UTF8);
+        var w = new WriterSerdes(ms);
 
         // Act
         var result = w.UInt64BE(0, value);
@@ -238,7 +237,7 @@ public class SerializerExtensionsTests
         short value = 0x1234;
         byte[] expected = [0x12, 0x34];
         var ms = new MemoryStream();
-        var w = new WriterSerdes(ms, Encoding.UTF8);
+        var w = new WriterSerdes(ms);
 
         // Act
         var result = w.Int16BE("test", value);
@@ -256,7 +255,7 @@ public class SerializerExtensionsTests
         int value = 0x12345678;
         byte[] expected = [0x12, 0x34, 0x56, 0x78];
         var ms = new MemoryStream();
-        var w = new WriterSerdes(ms, Encoding.UTF8);
+        var w = new WriterSerdes(ms);
 
         // Act
         var result = w.Int32BE("test", value);
@@ -274,7 +273,7 @@ public class SerializerExtensionsTests
         long value = 0x123456789ABCDEF0;
         byte[] expected = [0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0];
         var ms = new MemoryStream();
-        var w = new WriterSerdes(ms, Encoding.UTF8);
+        var w = new WriterSerdes(ms);
 
         // Act
         var result = w.Int64BE("test", value);
@@ -292,7 +291,7 @@ public class SerializerExtensionsTests
         ushort value = 0x1234;
         byte[] expected = [0x12, 0x34];
         var ms = new MemoryStream();
-        var w = new WriterSerdes(ms, Encoding.UTF8);
+        var w = new WriterSerdes(ms);
 
         // Act
         var result = w.UInt16BE("test", value);
@@ -310,7 +309,7 @@ public class SerializerExtensionsTests
         uint value = 0x12345678;
         byte[] expected = [0x12, 0x34, 0x56, 0x78];
         var ms = new MemoryStream();
-        var w = new WriterSerdes(ms, Encoding.UTF8);
+        var w = new WriterSerdes(ms);
 
         // Act
         var result = w.UInt32BE("test", value);
@@ -328,7 +327,7 @@ public class SerializerExtensionsTests
         ulong value = 0x123456789ABCDEF0;
         byte[] expected = [0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0];
         var ms = new MemoryStream();
-        var w = new WriterSerdes(ms, Encoding.UTF8);
+        var w = new WriterSerdes(ms);
 
         // Act
         var result = w.UInt64BE("test", value);
@@ -346,7 +345,7 @@ public class SerializerExtensionsTests
         var value = TestEnumU16.Value1;
         byte[] expected = [0x12, 0x34];
         var ms = new MemoryStream();
-        var w = new WriterSerdes(ms, Encoding.UTF8);
+        var w = new WriterSerdes(ms);
 
         // Act
         var result = w.EnumU16BE(0, value);
@@ -364,7 +363,7 @@ public class SerializerExtensionsTests
         var value = TestEnumU32.Value1;
         byte[] expected = [0x12, 0x34, 0x56, 0x78];
         var ms = new MemoryStream();
-        var w = new WriterSerdes(ms, Encoding.UTF8);
+        var w = new WriterSerdes(ms);
 
         // Act
         var result = w.EnumU32BE(0, value);
@@ -382,7 +381,7 @@ public class SerializerExtensionsTests
         var value = TestEnumU16.Value1;
         byte[] expected = [0x12, 0x34];
         var ms = new MemoryStream();
-        var w = new WriterSerdes(ms, Encoding.UTF8);
+        var w = new WriterSerdes(ms);
 
         // Act
         var result = w.EnumU16BE("test", value);
@@ -400,7 +399,7 @@ public class SerializerExtensionsTests
         var value = TestEnumU32.Value1;
         byte[] expected = [0x12, 0x34, 0x56, 0x78];
         var ms = new MemoryStream();
-        var w = new WriterSerdes(ms, Encoding.UTF8);
+        var w = new WriterSerdes(ms);
 
         // Act
         var result = w.EnumU32BE("test", value);
@@ -427,13 +426,12 @@ public class SerializerExtensionsTests
     public void Object_Serialization_Deserialization_Test()
     {
         var testObject = new TestObject { Id = 42, Name = "Test" };
-        var encoding = Encoding.UTF8;
         byte[] serializedData;
 
         // Serialize
         using (var ms = new MemoryStream())
         {
-            var writer = new WriterSerdes(ms, encoding);
+            var writer = new WriterSerdes(ms);
             writer.Object(0, testObject, SerializeTestObject);
             serializedData = ms.ToArray();
         }
@@ -442,7 +440,7 @@ public class SerializerExtensionsTests
         TestObject deserializedObject;
         using (var ms = new MemoryStream(serializedData))
         {
-            var reader = new ReaderSerdes(new BinaryReader(ms), serializedData.Length, encoding.GetString);
+            var reader = new ReaderSerdes(new BinaryReader(ms), serializedData.Length);
             deserializedObject = reader.Object(0, default(TestObject), SerializeTestObject);
         }
 
@@ -456,13 +454,12 @@ public class SerializerExtensionsTests
     {
         var testObject = new TestObject { Id = 42, Name = "Test" };
         var context = new TestContext { Prefix = "Context_" };
-        var encoding = Encoding.UTF8;
         byte[] serializedData;
 
         // Serialize
         using (var ms = new MemoryStream())
         {
-            var writer = new WriterSerdes(ms, encoding);
+            var writer = new WriterSerdes(ms);
             writer.Object("testObject", testObject, context, SerdesTestObjectWithContext);
             serializedData = ms.ToArray();
         }
@@ -471,7 +468,7 @@ public class SerializerExtensionsTests
         TestObject deserializedObject;
         using (var ms = new MemoryStream(serializedData))
         {
-            var reader = new ReaderSerdes(new BinaryReader(ms), serializedData.Length, encoding.GetString);
+            var reader = new ReaderSerdes(new BinaryReader(ms), serializedData.Length);
             deserializedObject = reader.Object("testObject", default(TestObject), context, SerdesTestObjectWithContext);
         }
 
@@ -484,13 +481,12 @@ public class SerializerExtensionsTests
     public void Object_WithContext_InPlace_Serialization_Deserialization_Test()
     {
         var testObject = new TestObject { Id = 42, Name = "Test" };
-        var encoding = Encoding.UTF8;
         byte[] serializedData;
 
         // Serialize
         using (var ms = new MemoryStream())
         {
-            var writer = new WriterSerdes(new BinaryWriter(ms), encoding.GetBytes);
+            var writer = new WriterSerdes(new BinaryWriter(ms));
             writer.Object("testObject", testObject, SerdesTestObjectInPlace);
             serializedData = ms.ToArray();
         }
@@ -499,7 +495,7 @@ public class SerializerExtensionsTests
         TestObject deserializedObject = new TestObject();
         using (var ms = new MemoryStream(serializedData))
         {
-            var reader = new ReaderSerdes(new BinaryReader(ms), serializedData.Length, encoding.GetString);
+            var reader = new ReaderSerdes(new BinaryReader(ms), serializedData.Length);
             reader.Object("testObject", deserializedObject, SerdesTestObjectInPlace);
         }
 
@@ -511,14 +507,14 @@ public class SerializerExtensionsTests
     void SerdesTestObjectInPlace(TestObject obj, ISerdes s)
     {
         obj.Id = s.Int32(nameof(obj.Id), obj.Id);
-        obj.Name = s.NullTerminatedString(nameof(obj.Name), obj.Name);
+        obj.Name = s.String32Utf8(nameof(obj.Name), obj.Name);
     }
 
     static TestObject SerializeTestObject(SerdesName name, TestObject obj, ISerdes s)
     {
         obj ??= new TestObject();
         obj.Id = s.Int32(nameof(obj.Id), obj.Id);
-        obj.Name = s.NullTerminatedString(nameof(obj.Name), obj.Name);
+        obj.Name = s.String32Utf8(nameof(obj.Name), obj.Name);
         return obj;
     }
 
@@ -526,7 +522,7 @@ public class SerializerExtensionsTests
     {
         obj ??= new TestObject();
         obj.Id = s.Int32(nameof(obj.Id), obj.Id);
-        obj.Name = s.NullTerminatedString(nameof(obj.Name), context.Prefix + obj.Name);
+        obj.Name = s.String32Utf8(nameof(obj.Name), context.Prefix + obj.Name);
         return obj;
     }
 

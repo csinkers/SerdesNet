@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using Xunit;
 
 namespace SerdesNet.Tests;
@@ -14,7 +13,6 @@ public class WriterSerdesTests
         using var bw = new BinaryWriter(ms);
         using var s = new WriterSerdes(
             bw,
-            Encoding.UTF8.GetBytes,
             assertHandler ?? (m => throw new InvalidOperationException(m)));
         action(s);
         bw.Flush();
@@ -102,20 +100,9 @@ public class WriterSerdesTests
     }
 
     [Fact]
-    public void FixedLengthStringTest()
+    public void String32Utf8Test()
     {
-        Assert.Equal(new byte[] { 65 },
-            Write(s => s.FixedLengthString("", "A", 1)));
-        Assert.Throws<InvalidOperationException>(() =>
-        {
-            Write(s => s.FixedLengthString("", "Too long", 1));
-        });
-    }
-
-    [Fact]
-    public void NullTerminatedStringTest()
-    {
-        Assert.Equal(new byte[] { 65, 0 }, Write(s => s.NullTerminatedString("", "A")));
+        Assert.Equal(new byte[] { 1,0,0,0,65 }, Write(s => s.String32Utf8("", "A")));
     }
 
     [Fact]
@@ -282,7 +269,7 @@ public class WriterSerdesTests
             assertionMessage = message;
         };
         var writer = new BinaryWriter(new MemoryStream());
-        var serdes = new WriterSerdes(writer, Encoding.UTF8.GetBytes, assertionFailed);
+        var serdes = new WriterSerdes(writer, assertionFailed);
 
         // Act
         serdes.Assert(false, 0, x => "Test assertion" + x);
@@ -304,7 +291,7 @@ public class WriterSerdesTests
             assertionMessage = message;
         };
         var writer = new BinaryWriter(new MemoryStream());
-        var serdes = new WriterSerdes(writer, Encoding.UTF8.GetBytes, assertionFailed);
+        var serdes = new WriterSerdes(writer, assertionFailed);
 
         // Act
         serdes.Assert(true, 0, x => "Test assertion" + x);

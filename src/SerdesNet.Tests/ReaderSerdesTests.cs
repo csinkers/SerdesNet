@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using Xunit;
 
 namespace SerdesNet.Tests;
@@ -15,7 +14,6 @@ public class ReaderSerdesTests
         return new ReaderSerdes(
             br,
             buffer.Length,
-            Encoding.UTF8.GetString,
             assertHandler ?? (m => throw new InvalidOperationException(m)));
     }
 
@@ -100,19 +98,9 @@ public class ReaderSerdesTests
     }
 
     [Fact]
-    public void FixedLengthStringTest()
+    public void String32Utf8Test()
     {
-        Assert.Equal("A", Read([65]).FixedLengthString("", "", 1));
-        Assert.Throws<EndOfStreamException>(() =>
-        {
-            Read([65]).FixedLengthString("", "", 2);
-        });
-    }
-
-    [Fact]
-    public void NullTerminatedStringTest()
-    {
-        Assert.Equal("A", Read([65, 0]).NullTerminatedString("", ""));
+        Assert.Equal("A", Read([1,0,0,0,65]).String32Utf8("", ""));
     }
 
     [Fact]
@@ -346,7 +334,7 @@ public class ReaderSerdesTests
         var disposeActionCalled = false;
         Action disposeAction = () => disposeActionCalled = true;
         var reader = new BinaryReader(new MemoryStream());
-        var serdes = new ReaderSerdes(reader, 100, Encoding.UTF8.GetString, disposeAction: disposeAction);
+        var serdes = new ReaderSerdes(reader, 100, disposeAction: disposeAction);
 
         // Act
         serdes.Dispose();
@@ -360,7 +348,7 @@ public class ReaderSerdesTests
     {
         // Arrange
         var reader = new BinaryReader(new MemoryStream());
-        var serdes = new ReaderSerdes(reader, 100, Encoding.UTF8.GetString);
+        var serdes = new ReaderSerdes(reader, 100);
 
         // Act & Assert
         var exception = Record.Exception(serdes.Dispose);

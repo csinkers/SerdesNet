@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace SerdesNet;
 
@@ -450,5 +451,71 @@ public static class SerializerExtensions
 
         s.End();
         return list;
+    }
+
+    /// <summary>
+    /// (De)serializes a boolean value as a byte (0 = false, non-zero = true).
+    /// </summary>
+    public static bool Bool8(this ISerdes s, SerdesName name, bool value)
+    {
+        byte v = s.UInt8(name, value ? (byte)1 : (byte)0);
+        return v != 0;
+    }
+
+    /// <summary>
+    /// (De)serializes a string prefixed with a 32-bit length using the UTF-8 encoding.
+    /// </summary>
+    public static string String32Utf8(this ISerdes s, SerdesName name, string value)
+        => s.String32(name, value, Encoding.UTF8);
+
+    /// <summary>
+    /// (De)serializes a string prefixed with a 32-bit length.
+    /// </summary>
+    public static string String32(this ISerdes s, SerdesName name, string value, Encoding encoding)
+    {
+        byte[] bytes = null;
+        if (s.IsWriting())
+            bytes = encoding.GetBytes(value ?? "");
+
+        bytes = s.Bytes32(name, bytes);
+
+        if (s.IsReading())
+            value = encoding.GetString(bytes);
+
+        if (s.IsCommenting())
+            s.Comment(value, true);
+
+        return value!;
+    }
+
+    /// <summary>
+    /// (De)serializes a byte array prefixed with a 32-bit length.
+    /// </summary>
+    public static byte[] Bytes32(this ISerdes s, SerdesName name, byte[] value)
+    {
+        int len = s.Int32(name + "Length", value?.Length ?? 0);
+        value = s.Bytes(name, value, len);
+        return value;
+    }
+
+    /// <summary>
+    /// (De)serializes a list of values prefixed with a 32-bit length.
+    /// </summary>
+    public static List<T> List32<T>(
+        this ISerdes s,
+        SerdesName name,
+        List<T> value,
+        Func<SerdesName, T, ISerdes, T> elementSerdes)
+    {
+        int count = s.Int32(name + "Count", value?.Count ?? 0);
+        value ??= new List<T>(count);
+
+        while (value.Count < count)
+            value.Add(default!);
+
+        for (int i = 0; i < count; i++)
+            value[i] = elementSerdes(i, value[i], s);
+
+        return value;
     }
 }

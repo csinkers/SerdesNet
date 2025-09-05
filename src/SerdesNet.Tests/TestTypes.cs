@@ -36,7 +36,7 @@ public class Example
 {
     public static readonly byte[] ExampleBuffer =
     [
-        255, 1, 254, 255, 2, 0, 
+        255, 1, 254, 255, 2, 0,
         253,255,255,255,
         3,0,0,0,
         252,255,255,255,255,255,255,255,
@@ -44,8 +44,8 @@ public class Example
         1,
         2,0,
         3,0,0,0,
-        0x46, 0x69, 0x78, 0x65, 0x64,
-        0x4e, 0x75, 0x6c, 0x6c, 0,
+        0x4, 0, 0, 0,
+        0x55, 0x74, 0x66, 0x38,
 
         0x0d, 0xa5, 0x6f, 0xfa,
         0x6f, 0xbe,
@@ -67,8 +67,7 @@ public class Example
         if (ByteEnum   != ByteEnum.Some) failed($"ByteEnum was expected to be Some, but was {ByteEnum}");
         if (UShortEnum != UShortEnum.Both) failed($"UShortEnum was expected to be Both, but was {UShortEnum}");
         if (UIntEnum   != UIntEnum.Many) failed($"UIntEnum was expected to be Many, but was {UIntEnum}");
-        if (Fixed      != "Fixed") failed($"Fixed was expected to be \"Fixed\", but was \"{Fixed}\"");
-        if (NullTerm   != "Null") failed($"NullTerm was expected to be \"Null\", but was \"{NullTerm}\"");
+        if (Utf8       != "Utf8") failed($"Utf8 was expected to be \"Utf8\", but was \"{Utf8}\"");
         var guid = Guid.Parse("{FA6FA50D-BE6F-4736-87DF-E17280F14248}");
         if(Guid       != guid) failed($"Guid was expected to be {guid}, but was {Guid}");
     }
@@ -86,8 +85,7 @@ public class Example
         ByteEnum = ByteEnum.Some,
         UShortEnum = UShortEnum.Both,
         UIntEnum = UIntEnum.Many,
-        Fixed = "Fixed",
-        NullTerm = "Null",
+        Utf8 = "Utf8",
         Guid = Guid.Parse("{FA6FA50D-BE6F-4736-87DF-E17280F14248}"),
     };
 
@@ -103,8 +101,7 @@ public class Example
     public ByteEnum   ByteEnum   { get; private set; }
     public UShortEnum UShortEnum { get; private set; }
     public UIntEnum   UIntEnum   { get; private set; }
-    public string     Fixed      { get; private set; }
-    public string     NullTerm   { get; private set; }
+    public string     Utf8       { get; private set; }
     public Guid       Guid       { get; private set; }
 
     public static Example Serdes(SerdesName _, Example e, ISerdes s)
@@ -121,8 +118,7 @@ public class Example
         e.ByteEnum   =  s.EnumU8(nameof(ByteEnum), e.ByteEnum);
         e.UShortEnum = s.EnumU16(nameof(UShortEnum), e.UShortEnum);
         e.UIntEnum   = s.EnumU32(nameof(UIntEnum), e.UIntEnum);
-        e.Fixed      = s.FixedLengthString(nameof(Fixed), e.Fixed, FixedLength);
-        e.NullTerm   = s.NullTerminatedString(nameof(NullTerm), e.NullTerm);
+        e.Utf8       = s.String32Utf8(nameof(Utf8), e.Utf8);
         e.Guid       = s.Guid(nameof(Guid), e.Guid);
         return e;
     }

@@ -58,9 +58,4 @@ public class EmptySerdes : ISerdes
     /// <inheritdoc />
     public void Bytes(SerdesName name, Span<byte> value) => throw new NotSupportedException();
 #endif
-
-    /// <inheritdoc />
-    public string NullTerminatedString(SerdesName name, string value) => throw new NotSupportedException();
-    /// <inheritdoc />
-    public string FixedLengthString(SerdesName name, string value, int length) => throw new NotSupportedException();
 }

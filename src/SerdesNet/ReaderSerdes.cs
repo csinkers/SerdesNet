@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 
@@ -12,7 +11,6 @@ public class ReaderSerdes : ISerdes
 {
     readonly Action<string> _assertionFailed;
     readonly Action _disposeAction;
-    readonly Func<byte[], string> _bytesToString;
     readonly BinaryReader _br;
     readonly long _maxOffset;
 
@@ -21,20 +19,17 @@ public class ReaderSerdes : ISerdes
     /// </summary>
     /// <param name="br">The binary reader to use for reading</param>
     /// <param name="maxLength">The maximum offset that should be accessed</param>
-    /// <param name="bytesToString">A method to convert a sequence of bytes to a string using the desired encoding</param>
     /// <param name="assertionFailed">An optional callback to be invoked when an assertion failure occurs</param>
     /// <param name="disposeAction">An optional callback to be invoked when the <see cref="ReaderSerdes"/> is disposed</param>
     public ReaderSerdes(
         BinaryReader br,
         long maxLength,
-        Func<byte[], string> bytesToString,
         Action<string> assertionFailed = null,
         Action disposeAction = null)
     {
         _br = br ?? throw new ArgumentNullException(nameof(br));
         _assertionFailed = assertionFailed;
         _disposeAction = disposeAction;
-        _bytesToString = bytesToString ?? throw new ArgumentNullException(nameof(bytesToString));
         _maxOffset = Offset + maxLength;
     }
 
@@ -42,19 +37,16 @@ public class ReaderSerdes : ISerdes
     /// Create a new ReaderSerdes based on a byte array
     /// </summary>
     /// <param name="bytes">The byte array to read from</param>
-    /// <param name="bytesToString"></param>
     /// <param name="assertionFailed">An optional callback to be invoked when an assertion failure occurs</param>
     /// <param name="disposeAction">An optional callback to be invoked when the <see cref="ReaderSerdes"/> is disposed</param>
     public ReaderSerdes(
         byte[] bytes,
-        Func<byte[], string> bytesToString,
         Action<string> assertionFailed = null,
         Action disposeAction = null)
     {
         var ms = new MemoryStream(bytes);
         _br = new BinaryReader(ms);
         _maxOffset = bytes.Length;
-        _bytesToString = bytesToString ?? throw new ArgumentNullException(nameof(bytesToString));
         _assertionFailed = assertionFailed;
         _disposeAction = disposeAction;
     }
@@ -137,33 +129,6 @@ public class ReaderSerdes : ISerdes
             throw new EndOfStreamException();
     }
 #endif
-
-    /// <inheritdoc />
-    public string NullTerminatedString(SerdesName name, string value)
-    {
-        var bytes = new List<byte>();
-        for (;;)
-        {
-            var b = _br.ReadByte();
-            if (b == 0)
-                break;
-
-            bytes.Add(b);
-        }
-
-        return _bytesToString([.. bytes]);
-    }
-
-    /// <inheritdoc />
-    public string FixedLengthString(SerdesName name, string value, int length)
-    {
-        var bytes = _br.ReadBytes(length);
-        if (bytes.Length < length)
-            throw new EndOfStreamException();
-
-        var str = _bytesToString(bytes);
-        return str.TrimEnd('\0');
-    }
 
     void ISerdes.Assert(bool condition, string message) => Assert(condition, message);
     void Assert(bool condition, string message = null, [CallerMemberName] string function = "", [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)

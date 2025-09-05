@@ -113,9 +113,4 @@ public sealed class BreakpointProxySerdes(ISerdes s) : ISerdes // For debugging 
         }
     }
 #endif
-
-    /// <inheritdoc />
-    public string NullTerminatedString(SerdesName name, string value) => CheckT(() => s.NullTerminatedString(name, value));
-    /// <inheritdoc />
-    public string FixedLengthString(SerdesName name, string value, int length) => CheckT(() => s.FixedLengthString(name, value, length));
 }

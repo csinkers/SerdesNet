@@ -85,9 +85,4 @@ public class WindowingProxySerdes : ISerdes
     /// <inheritdoc />
     public void Bytes(SerdesName name, Span<byte> value) => _s.Bytes(name, value);
 #endif
-
-    /// <inheritdoc />
-    public string NullTerminatedString(SerdesName name, string value) => _s.NullTerminatedString(name, value);
-    /// <inheritdoc />
-    public string FixedLengthString(SerdesName name, string value, int length) => _s.FixedLengthString(name, value, length);
 }

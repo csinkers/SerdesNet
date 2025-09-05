@@ -13,7 +13,6 @@ namespace SerdesNet;
 public class AnnotationProxySerdes : ISerdes
 {
     readonly TextWriter _tw;
-    readonly Func<string, byte[]> _stringToBytes;
     readonly ISerdes _s;
     readonly Stack<long> _offsetStack = new();
     readonly bool _useRelativeOffsets;
@@ -24,14 +23,12 @@ public class AnnotationProxySerdes : ISerdes
     /// </summary>
     /// <param name="s">The underlying serdes to delegate to</param>
     /// <param name="tw">The text writer that will record the annotations</param>
-    /// <param name="stringToBytes">A function to convert a string to its byte representation in the desired encoding.</param>
     /// <param name="useRelativeOffsets">Whether to use absolute or relative offsets when emitting fields inside a block/object scope</param>
     /// <exception cref="ArgumentNullException"></exception>
-    public AnnotationProxySerdes(ISerdes s, TextWriter tw, Func<string, byte[]> stringToBytes, bool useRelativeOffsets = true)
+    public AnnotationProxySerdes(ISerdes s, TextWriter tw, bool useRelativeOffsets = true)
     {
         _s = s ?? throw new ArgumentNullException(nameof(s));
         _tw = tw ?? throw new ArgumentNullException(nameof(tw));
-        _stringToBytes = stringToBytes ?? throw new ArgumentNullException(nameof(stringToBytes));
         _offsetStack.Push(0);
         _useRelativeOffsets = useRelativeOffsets;
     }
@@ -271,30 +268,5 @@ public class AnnotationProxySerdes : ISerdes
         }
 
         _indent -= 4;
-    }
-
-    /// <inheritdoc />
-    public string NullTerminatedString(SerdesName name, string value)
-    {
-        value ??= string.Empty;
-        var offset = LocalOffset;
-        value = _s.NullTerminatedString(name, value);
-        DoIndent();
-        _tw.Write("{0:X} {1} = \"{2}\"", offset, name, value);
-        return value;
-    }
-
-    /// <inheritdoc />
-    public string FixedLengthString(SerdesName name, string value, int length)
-    {
-        value ??= string.Empty;
-        var offset = LocalOffset;
-        value = _s.FixedLengthString(name, value, length);
-        DoIndent();
-        _tw.Write("{0:X} {1} = \"{2}\"", offset, name, value);
-
-        var bytes = _stringToBytes(value);
-        if (bytes.Length > length + 1) throw new InvalidOperationException("Tried to write over-length string");
-        return value;
     }
 }

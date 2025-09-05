@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Moq;
 using Xunit;
 
@@ -11,12 +9,12 @@ namespace SerdesNet.Tests
     {
         static byte[] SeqBytes => Enumerable.Range(0, 16).Select(x => (byte)x).ToArray();
 
-        static ISerdes Reader(byte[] bytes) => new ReaderSerdes(bytes, Encoding.Latin1.GetString);
+        static ISerdes Reader(byte[] bytes) => new ReaderSerdes(bytes);
 
         [Fact]
         public void Constructor_InitializesCorrectly()
         {
-            var inner = new ReaderSerdes(SeqBytes, Encoding.Latin1.GetString);
+            var inner = new ReaderSerdes(SeqBytes);
             var outer = new BreakpointProxySerdes(inner);
             Assert.NotNull(outer);
         }
@@ -24,7 +22,7 @@ namespace SerdesNet.Tests
         [Fact]
         public void Flags_ReturnsUnderlyingSerdesFlags()
         {
-            var inner = new ReaderSerdes(SeqBytes, Encoding.Latin1.GetString);
+            var inner = new ReaderSerdes(SeqBytes);
             var outer = new BreakpointProxySerdes(inner);
             Assert.Equal(SerializerFlags.Read, outer.Flags);
         }
@@ -32,7 +30,7 @@ namespace SerdesNet.Tests
         [Fact]
         public void Offset_ReturnsCorrectOffset()
         {
-            var inner = new ReaderSerdes(SeqBytes, Encoding.Latin1.GetString);
+            var inner = new ReaderSerdes(SeqBytes);
             var outer = new BreakpointProxySerdes(inner);
 
             Assert.Equal(0, outer.Offset);
@@ -43,7 +41,7 @@ namespace SerdesNet.Tests
         [Fact]
         public void BytesRemaining_ReturnsCorrectBytesRemaining()
         {
-            var inner = new ReaderSerdes(SeqBytes, Encoding.Latin1.GetString);
+            var inner = new ReaderSerdes(SeqBytes);
             var outer = new BreakpointProxySerdes(inner);
             Assert.Equal(16, outer.BytesRemaining);
             outer.UInt8(0, 0);
@@ -259,30 +257,6 @@ namespace SerdesNet.Tests
             var bytes = new byte[] { 1, 2, 3 };
             Assert.Equal(bytes, outer.Bytes((SerdesName)"test", bytes, 3));
             inner.Verify(x => x.Bytes((SerdesName)"test", bytes, 3), Times.Once);
-        }
-
-        [Fact]
-        public void NullTerminatedString_CallsUnderlyingSerdesNullTerminatedString()
-        {
-            var inner = new Mock<ISerdes>();
-            inner.Setup(x => x.NullTerminatedString(It.IsAny<SerdesName>(), It.IsAny<string>()))
-                .Returns((SerdesName _, string v) => v);
-
-            var outer = new BreakpointProxySerdes(inner.Object);
-            Assert.Equal("test", outer.NullTerminatedString("test", "test"));
-            inner.Verify(x => x.NullTerminatedString("test", "test"), Times.Once);
-        }
-
-        [Fact]
-        public void FixedLengthString_CallsUnderlyingSerdesFixedLengthString()
-        {
-            var inner = new Mock<ISerdes>();
-            inner.Setup(x => x.FixedLengthString(It.IsAny<SerdesName>(), It.IsAny<string>(), It.IsAny<int>()))
-                .Returns((SerdesName _, string v, int _) => v);
-
-            var outer = new BreakpointProxySerdes(inner.Object);
-            Assert.Equal("test", outer.FixedLengthString("test", "test", 4));
-            inner.Verify(x => x.FixedLengthString("test", "test", 4), Times.Once);
         }
 
         [Fact]

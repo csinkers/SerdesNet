@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Moq;
 using Xunit;
 
@@ -14,7 +13,7 @@ public class WindowingProxySerdesTests
     static byte[] SeqInts => [0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0];
     static byte[] SeqLongs => [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0];
 
-    static ISerdes Reader(byte[] bytes) => new ReaderSerdes(bytes, Encoding.Latin1.GetString);
+    static ISerdes Reader(byte[] bytes) => new ReaderSerdes(bytes);
 
     [Fact]
     public void Constructor_ThrowsArgumentNullException_WhenSerializerIsNull()
@@ -288,22 +287,6 @@ public class WindowingProxySerdesTests
         var outer = new WindowingProxySerdes(inner, 8);
         var bytes = new byte[] { 0, 1, 2, 3 };
         Assert.Equal(bytes, outer.Bytes("test", null, 4));
-    }
-
-    [Fact]
-    public void NullTerminatedString_CallsUnderlyingSerializerNullTerminatedString()
-    {
-        var inner = Reader( Encoding.Latin1.GetBytes("test\0"));
-        var outer = new WindowingProxySerdes(inner, 5);
-        Assert.Equal("test", outer.NullTerminatedString("foo", "bar"));
-    }
-
-    [Fact]
-    public void FixedLengthString_CallsUnderlyingSerializerFixedLengthString()
-    {
-        var inner = Reader(Encoding.Latin1.GetBytes("test string"));
-        var outer = new WindowingProxySerdes(inner, (int)inner.BytesRemaining);
-        Assert.Equal("test", outer.FixedLengthString("foo", "bar", 4));
     }
 
     [Fact]
